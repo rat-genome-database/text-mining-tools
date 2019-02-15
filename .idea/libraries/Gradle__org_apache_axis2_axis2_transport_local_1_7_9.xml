@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.axis2:axis2-transport-local:1.7.9">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.axis2/axis2-transport-local/1.7.9/6d55cee0f49ce05eea8597b9762ba7ada85ab67f/axis2-transport-local-1.7.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.axis2/axis2-transport-local/1.7.9/31199a5e34ab2c35deb3d3bfca478ed78f622235/axis2-transport-local-1.7.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
