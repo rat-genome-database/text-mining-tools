@@ -108,6 +108,7 @@ dependencies {
 
 
 jar {
+    zip64=true
     baseName = appName
     manifest {
         attributes 'Built-By': System.getProperty('user.name'),
