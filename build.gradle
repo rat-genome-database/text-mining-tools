@@ -1,12 +1,12 @@
 group 'rgd.mcw.edu'
-version '1.0-SNAPSHOT'
+version ''
 
 apply plugin: 'java'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
 mainClassName='edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator'
-String appName='textMiningTools'
+String appName='ontomate-tools'
 repositories {
     mavenCentral()
 }
