@@ -112,7 +112,7 @@ public class IndexBuilder {
 
 		job.setJarByClass(IndexBuilder.class);
 		job.setMapperClass(Map.class);
-		job.setNumReduceTasks(10);
+		job.setNumReduceTasks(0);
 		job.setInputFormatClass(TableInputFormat.class);
 		
 		TableMapReduceUtil.initTableReducerJob(tableName, null, job);
