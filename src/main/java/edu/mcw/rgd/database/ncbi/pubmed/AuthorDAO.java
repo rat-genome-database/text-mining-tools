@@ -25,7 +25,7 @@ public class AuthorDAO extends DAOBase {
 		}
 	}
 	
-	public static String get(String pmid) {
+	public static String get(String pmid) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select * from "
 				+ tableName + " where pmid=" + Long.parseLong(pmid) + " order by authornumber");
 		String author_string = "";

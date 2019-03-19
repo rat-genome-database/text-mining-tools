@@ -59,7 +59,7 @@ public class Queries {
 		}
 	}
 	
-	public static NcbiQueryLogEntry get(Long id) {
+	public static NcbiQueryLogEntry get(Long id) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select * from "
 				+ tableName + " where id=" + id);
 		NcbiQueryLogEntry result = null;
@@ -338,7 +338,7 @@ public class Queries {
 		return "";
 	}
 	
-	public static void getTitleAuthor(Long id) {
+	public static void getTitleAuthor(Long id) throws Exception {
 		NcbiQueryLogEntry en = Queries.get(id);
 		List<QueryClause> clauseList = getClauses(en.getQuery());
 		String title = "";
@@ -461,7 +461,7 @@ System.out.println("Result exported to " + filePath);
 		return "";
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 //		int total = 30463;
 		
 		if (args.length == 0) {

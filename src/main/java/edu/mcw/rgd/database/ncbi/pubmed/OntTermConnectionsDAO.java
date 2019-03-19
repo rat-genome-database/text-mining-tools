@@ -15,7 +15,7 @@ public class OntTermConnectionsDAO extends DAOBase {
 	 * @param term2
 	 * @return true if a parenthood relationship is found.
 	 */
-	public static boolean isParent(String term1, String term2) {
+	public static boolean isParent(String term1, String term2) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select SQL_NO_CACHE child_term from "
 				+ tableName + " where child_term='" + term1 + "' and parent_term='"
 				+ term2 + "' limit 1");

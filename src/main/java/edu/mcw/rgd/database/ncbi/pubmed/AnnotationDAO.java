@@ -86,7 +86,7 @@ public class AnnotationDAO extends DAOBase {
 				annotation.getEndNode().getOffset(), annotation.getFeatures().toString());
 	}
 	
-	public static List<AnnotationRecord> getAnnotations(long pmid) {
+	public static List<AnnotationRecord> getAnnotations(long pmid) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select * from " + tableName + " where pmid="+Long.toString(pmid));
 		List<AnnotationRecord> return_list = new ArrayList<AnnotationRecord>();
 		AnnotationRecord a_record;
@@ -193,7 +193,7 @@ public class AnnotationDAO extends DAOBase {
 		}
 	}
 	
-	public static List<AnnotationRecord> getAllAnnotations(long pmid) {
+	public static List<AnnotationRecord> getAllAnnotations(long pmid) throws Exception {
 		tableName = "annotations_gene";
 		List<AnnotationRecord> return_list = getAnnotations(pmid);
 		tableName = "annotations_organismtagger";
@@ -203,7 +203,7 @@ public class AnnotationDAO extends DAOBase {
 		return return_list;
 	}
 	
-	public static List<AnnotationRecord> getAllAnnotationsForNcbiLog(long pmid) {
+	public static List<AnnotationRecord> getAllAnnotationsForNcbiLog(long pmid) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select * from annotations_ncbi where pmid="+Long.toString(pmid));
 		List<AnnotationRecord> return_list = new ArrayList<>();
 		AnnotationRecord a_record;
@@ -230,7 +230,7 @@ public class AnnotationDAO extends DAOBase {
 		}
 	}
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws Exception {
 		List<AnnotationRecord> a_list = AnnotationDAO.getAnnotations(21338450);
 		Iterator<AnnotationRecord> it = a_list.iterator();
 		while (it.hasNext()) {
