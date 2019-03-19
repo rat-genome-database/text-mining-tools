@@ -33,6 +33,10 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
 
+import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_PASSWORD;
+import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_URL;
+import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_USERNAME;
+
 /**
  * Indexer class that utilizes HBase as PubMed data storage 
  * @author wliu
@@ -50,25 +54,16 @@ public class IndexBuilder {
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
 
-		protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
+	/*	protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
 		protected static String MYSQL_DB_USERNAME="rattext";
-		protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";
+		protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";*/
+		protected static String MYSQL_DB_URL;
+		protected static String MYSQL_DB_USERNAME;
+		protected static String MYSQL_DB_PASSWORD;
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
 			aoc.LoadFromHDFS(context);
-		/*	Path[] localCache= context.getLocalCacheArchives();
-			mySqlDbPropertiesFilePath=localCache[0].toString();
-			Properties props= new Properties();
-			FileInputStream fis=new FileInputStream("~/properties/mySqlDb.properties");
-			props.load(fis);
-			DataSourceFactory.MYSQL_DB_URL=props.getProperty("MYSQL_DB_URL");
-			DataSourceFactory.MYSQL_DB_USERNAME=props.getProperty("MYSQL_DB_USERNAME");
-			DataSourceFactory.MYSQL_DB_PASSWORD=props.getProperty("MYSQL_DB_PASSWORD");
-
-			System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL);
-			*/
-			
 		}
 
 
@@ -106,14 +101,14 @@ public class IndexBuilder {
 						System.out.println("3. in indexBuilder map: Error in saving to HBase: "+ Bytes.toString(rowKey.get()));
 						
 						System.err.println("Error in saving to HBase:" + Bytes.toString(rowKey.get()));
-					//	e1.printStackTrace();
+						e1.printStackTrace();
 					}
 				}
 			} catch (Exception e) {
 				
 				System.out.println("4. in indexBuilder map: Error");
 				
-			//	e.printStackTrace();
+				e.printStackTrace();
 //				throw new IOException();
 			}
 		}
@@ -122,13 +117,15 @@ public class IndexBuilder {
 	public static Job configureJob(Configuration conf, String [] args)
 			throws IOException {
 
+		MYSQL_DB_URL=args[1];
+		MYSQL_DB_USERNAME=args[2];
+		MYSQL_DB_PASSWORD=args[3];
 
-		System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL +'\t'+ DataSourceFactory.MYSQL_DB_USERNAME);
 
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
 		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);
 		String tableName=args[0];
-		
+
 		conf.set(TableInputFormat.INPUT_TABLE, tableName);
 	/*	conf.set("hbase.zookeeper.quorum", "tucker.rgd.mcw.edu");
 		conf.set("zookeeper.znode.parent", "/hbase-unsecure");*/
