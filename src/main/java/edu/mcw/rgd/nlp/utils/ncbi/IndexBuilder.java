@@ -50,11 +50,6 @@ public class IndexBuilder {
 
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
-
-		/*protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
-			protected static String MYSQL_DB_USERNAME="rattext";
-            protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";*/
-
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
