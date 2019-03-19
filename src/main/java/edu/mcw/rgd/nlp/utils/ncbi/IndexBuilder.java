@@ -65,6 +65,7 @@ public class IndexBuilder {
 				DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
 				DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
 				DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
+				PubMedLibrary.HOST_NAME=conf.get("HOST_NAME");
 				if (!PubMedLibrary.indexArticle(result))
 				{
 					System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
@@ -113,7 +114,7 @@ public class IndexBuilder {
 		conf.setStrings("MYSQL_DB_URL", args[1]);
 		conf.setStrings("MYSQL_DB_USERNAME", args[2]);
 		conf.setStrings("MYSQL_DB_PASSWORD", args[3]);
-
+		conf.setStrings("HOST_NAME", args[4]);
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
 		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);
 
