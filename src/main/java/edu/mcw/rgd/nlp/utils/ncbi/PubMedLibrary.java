@@ -65,7 +65,8 @@ import gate.Document;
 public class PubMedLibrary extends LibraryBase implements Library {
 
 	//	public static String solrServer = "http://localhost:8080/solr/";  // this one was disabled!
-	public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
+	//public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
+	public static String hostname="http://green.rgd.mcw.edu";
 	public static HttpSolrServer[] solrServers = null;
 	public static Random solrServerIdGenerator = new Random();
 
@@ -100,14 +101,14 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 	protected static void initSolrServers() throws UnknownHostException {
 		solrServers = new HttpSolrServer[20];
-		InetAddress host=InetAddress.getLocalHost();
-		System.out.println("HOST NAME: " + host.getHostName());
+		/*InetAddress host=InetAddress.getLocalHost();
+		System.out.println("HOST NAME: " + host.getHostName());*/
 		System.out.println("Initializing solr servers....");
 
 		int basePort=9292;
 
 		for(int solrServerId=0;solrServerId<20;solrServerId++){
-			String solrServerString="http://"+host.getHostName()+":"+(basePort+solrServerId) +"/solr/";
+			String solrServerString="http://"+hostname+":"+(basePort+solrServerId) +"/solr/";
 		//	System.out.println(solrServerString);
 		   solrServers[solrServerId]=new HttpSolrServer(solrServerString);
 		}
@@ -1405,8 +1406,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 
 				}
-				req.clear();
-				solr_doc.clear();
+
 				return true;
 
 			} catch (Exception e) {
