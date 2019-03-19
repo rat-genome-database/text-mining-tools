@@ -54,10 +54,10 @@ public class IndexBuilder {
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
 
-	/*	protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
-		protected static String MYSQL_DB_USERNAME="rattext";
-		protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";*/
-		protected static String MYSQL_DB_URL;
+		protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
+		/*	protected static String MYSQL_DB_USERNAME="rattext";
+            protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";*/
+
 		protected static String MYSQL_DB_USERNAME;
 		protected static String MYSQL_DB_PASSWORD;
 		@Override
@@ -116,16 +116,16 @@ public class IndexBuilder {
 
 	public static Job configureJob(Configuration conf, String [] args)
 			throws IOException {
-		System.out.println(args[1]+"\t"+args[2]);
-		String tableName=args[0];
-		MYSQL_DB_URL=args[1];
-		MYSQL_DB_USERNAME=args[2];
-		MYSQL_DB_PASSWORD=args[3];
 
+		String tableName=args[0];
+		
+		MYSQL_DB_USERNAME=args[1];
+		MYSQL_DB_PASSWORD=args[2];
+		System.out.println(args[1]+"\t"+args[2]);
 
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
 		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);
-		
+
 
 		conf.set(TableInputFormat.INPUT_TABLE, tableName);
 	/*	conf.set("hbase.zookeeper.quorum", "tucker.rgd.mcw.edu");
