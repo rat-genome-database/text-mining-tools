@@ -44,19 +44,19 @@ public class DocDBConnection {
 		return instance;
 	}
 	
-	public static DocDBConnection getInstance(String conn_string) {
+	public static DocDBConnection getInstance(String conn_string) throws Exception {
 		if (instance == null) {
 			instance = new DocDBConnection(conn_string);
 		}
 		return instance;
 	}
 	
-	protected DocDBConnection(String conn_string) {
+	protected DocDBConnection(String conn_string) throws Exception {
 		ConnectionString = conn_string;
 		connect();
 	}
 	
-	public static void connect() {
+	public static void connect() throws Exception {
 		DataSource ds= DataSourceFactory.getMySQLDataSource();
 		try{
 			if(DBConn==null){
@@ -83,7 +83,7 @@ public class DocDBConnection {
        logger.info("Database disconnected!!!");
 	}
 
-	public static ResultSet executeQuery(String queryStatement) {
+	public static ResultSet executeQuery(String queryStatement) throws Exception {
 	       Statement stmt = null;
 	       ResultSet rs = null;
 	       connect();

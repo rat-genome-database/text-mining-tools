@@ -65,7 +65,7 @@ import gate.Document;
 public class PubMedLibrary extends LibraryBase implements Library {
 
 	//	public static String solrServer = "http://localhost:8080/solr/";  // this one was disabled!
-//	public static String solrServer = "http://tucker.rgd.mcw.edu:8080/solr/";  // this one was enabled!
+	public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
 	public static HttpSolrServer[] solrServers = null;
 	public static Random solrServerIdGenerator = new Random();
 
@@ -108,7 +108,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		for(int solrServerId=0;solrServerId<20;solrServerId++){
 			String solrServerString="http://"+host.getHostName()+":"+(basePort+solrServerId) +"/solr/";
-			System.out.println(solrServerString);
+		//	System.out.println(solrServerString);
 		   solrServers[solrServerId]=new HttpSolrServer(solrServerString);
 		}
 		/*try {
@@ -1396,21 +1396,17 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 				int serverId = solrServerIdGenerator.nextInt(solrServers.length);
 
-
-
 				SolrServer server = solrServers[serverId];
-
 				UpdateRequest req = new UpdateRequest();
 				req.add(solr_doc);
-
-
 				if(server!=null){
 
 					UpdateResponse rsp = req.process(server);
 
 
 				}
-
+				req.clear();
+				solr_doc.clear();
 				return true;
 
 			} catch (Exception e) {
@@ -1573,6 +1569,21 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		try{
+			if(solrServers==null){
+				initSolrServers();
+			}
+			System.out.println("SOLR SERVERS LENGTH: "+ solrServers.length);
+			for(HttpSolrServer s:solrServers){
+				System.out.println(s.getBaseURL());
+			}
+			int serverId = solrServerIdGenerator.nextInt(solrServers.length);
+
+			System.out.println("SERVER ID: " + serverId);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
 	/*	System.setProperty("java.io.tmpdir", "/data/tmp");
 		String command_str = args[0];
 		if (command_str.equals("importToDB")) {

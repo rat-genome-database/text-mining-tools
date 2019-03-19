@@ -1,12 +1,18 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Base64;
 
 import java.util.NavigableMap;
+import java.util.Properties;
 
 
+import edu.mcw.rgd.common.utils.DataSourceFactory;
+import edu.mcw.rgd.database.ncbi.pubmed.DocDBConnection;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Mutation;
@@ -44,11 +50,24 @@ public class IndexBuilder {
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
 
+		protected String mySqlDbPropertiesFilePath;
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
 			aoc.LoadFromHDFS(context);
+		/*	Path[] localCache= context.getLocalCacheArchives();
+			mySqlDbPropertiesFilePath=localCache[0].toString();
+			Properties props= new Properties();
+			FileInputStream fis=new FileInputStream("~/properties/mySqlDb.properties");
+			props.load(fis);
+			DataSourceFactory.MYSQL_DB_URL=props.getProperty("MYSQL_DB_URL");
+			DataSourceFactory.MYSQL_DB_USERNAME=props.getProperty("MYSQL_DB_USERNAME");
+			DataSourceFactory.MYSQL_DB_PASSWORD=props.getProperty("MYSQL_DB_PASSWORD");
+
+			System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL);
+			*/
 		}
+
 
 		@Override
 		protected void map(ImmutableBytesWritable rowKey, Result result, Context context)
@@ -97,7 +116,14 @@ public class IndexBuilder {
 
 	public static Job configureJob(Configuration conf, String [] args)
 			throws IOException {
-		System.out.println("*************************************************************************************");
+
+
+
+		DataSourceFactory.MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
+		DataSourceFactory.MYSQL_DB_USERNAME="rattext";
+		DataSourceFactory.MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";
+
+		System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL +'\t'+ DataSourceFactory.MYSQL_DB_USERNAME);
 
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
 		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);

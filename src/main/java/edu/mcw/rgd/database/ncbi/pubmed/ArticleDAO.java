@@ -230,7 +230,7 @@ public class ArticleDAO extends DAOBase {
 				} else {
 					jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
 				}
-			System.out.println("JDATE: "+ jDate);
+		//	System.out.println("JDATE: "+ jDate);
 				this.articlePubDate = jDate;
 				this.publicationYear = jDate.getYear() + 1900;
 				this.articleJournalDate = pmd.getArticleJournalDate();
