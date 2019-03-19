@@ -108,7 +108,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		int basePort=9292;
 
 		for(int solrServerId=0;solrServerId<20;solrServerId++){
-			String solrServerString="http://"+hostname+":"+(basePort+solrServerId) +"/solr/";
+			String solrServerString=hostname+":"+(basePort+solrServerId) +"/solr/";
 		//	System.out.println(solrServerString);
 		   solrServers[solrServerId]=new HttpSolrServer(solrServerString);
 		}
