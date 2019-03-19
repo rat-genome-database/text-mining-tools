@@ -69,11 +69,11 @@ public class SortedCountMap {
 		_keyFrquency.addValue((String)key);
 	}
 
-	public void sort() {
+	public void sort() throws Exception {
 		sort(false);
 	}
 	
-	public void sort(boolean removeParents) {
+	public void sort(boolean removeParents) throws Exception {
 		// Generate key counts
 		Iterator<Comparable<?>> it = _keyFrquency.valuesIterator();
 
@@ -144,7 +144,7 @@ public class SortedCountMap {
 		return _unsortedMap;
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		SortedCountMap sm = new SortedCountMap();
 //		sm.add("key2", "", "0;2-3");
 //		sm.add("key1", "", "0;5-6");
