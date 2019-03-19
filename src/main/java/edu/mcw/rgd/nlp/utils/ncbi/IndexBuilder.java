@@ -50,7 +50,9 @@ public class IndexBuilder {
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
 
-		protected String mySqlDbPropertiesFilePath;
+		protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
+		protected static String MYSQL_DB_USERNAME="rattext";
+		protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
@@ -66,6 +68,7 @@ public class IndexBuilder {
 
 			System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL);
 			*/
+			
 		}
 
 
@@ -73,7 +76,9 @@ public class IndexBuilder {
 		protected void map(ImmutableBytesWritable rowKey, Result result, Context context)
 				throws IOException, InterruptedException {
 			try {
-
+				DataSourceFactory.MYSQL_DB_URL=MYSQL_DB_URL;
+				DataSourceFactory.MYSQL_DB_USERNAME=MYSQL_DB_USERNAME;
+				DataSourceFactory.MYSQL_DB_PASSWORD=MYSQL_DB_PASSWORD;
 				if (!PubMedLibrary.indexArticle(result))
 				{
 					System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
@@ -101,14 +106,14 @@ public class IndexBuilder {
 						System.out.println("3. in indexBuilder map: Error in saving to HBase: "+ Bytes.toString(rowKey.get()));
 						
 						System.err.println("Error in saving to HBase:" + Bytes.toString(rowKey.get()));
-						e1.printStackTrace();
+					//	e1.printStackTrace();
 					}
 				}
 			} catch (Exception e) {
 				
 				System.out.println("4. in indexBuilder map: Error");
 				
-				e.printStackTrace();
+			//	e.printStackTrace();
 //				throw new IOException();
 			}
 		}
@@ -117,11 +122,6 @@ public class IndexBuilder {
 	public static Job configureJob(Configuration conf, String [] args)
 			throws IOException {
 
-
-
-		DataSourceFactory.MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
-		DataSourceFactory.MYSQL_DB_USERNAME="rattext";
-		DataSourceFactory.MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";
 
 		System.out.println("MYSQL DB URL:"+DataSourceFactory.MYSQL_DB_URL +'\t'+ DataSourceFactory.MYSQL_DB_USERNAME);
 
