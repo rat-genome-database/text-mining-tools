@@ -138,7 +138,7 @@ public class ArticleDAO extends DAOBase {
 	public String doi;
 	public String issn;
 
-	public boolean getArticle(String pmid) {
+	public boolean getArticle(String pmid) throws Exception {
 		ResultSet rs = DocDBConnection.executeQuery("select * from "
 				+ tableName + " where pmid=" + Long.parseLong(pmid));
 		try {
