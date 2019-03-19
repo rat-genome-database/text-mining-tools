@@ -33,9 +33,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
 
-import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_PASSWORD;
-import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_URL;
-import static edu.mcw.rgd.nlp.utils.ncbi.IndexBuilder.Map.MYSQL_DB_USERNAME;
 
 /**
  * Indexer class that utilizes HBase as PubMed data storage 
@@ -54,12 +51,10 @@ public class IndexBuilder {
 	public static class Map extends
 	Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
 
-		protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
-		/*	protected static String MYSQL_DB_USERNAME="rattext";
+		/*protected static String MYSQL_DB_URL="jdbc:mysql://green.rgd.mcw.edu/pubmed";
+			protected static String MYSQL_DB_USERNAME="rattext";
             protected static String MYSQL_DB_PASSWORD="t3xt_mining_rgd2015r4t";*/
 
-		protected static String MYSQL_DB_USERNAME;
-		protected static String MYSQL_DB_PASSWORD;
 		@Override
 		protected void setup(Context context) throws IOException, InterruptedException {
 			ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
@@ -71,9 +66,10 @@ public class IndexBuilder {
 		protected void map(ImmutableBytesWritable rowKey, Result result, Context context)
 				throws IOException, InterruptedException {
 			try {
-				DataSourceFactory.MYSQL_DB_URL=MYSQL_DB_URL;
-				DataSourceFactory.MYSQL_DB_USERNAME=MYSQL_DB_USERNAME;
-				DataSourceFactory.MYSQL_DB_PASSWORD=MYSQL_DB_PASSWORD;
+				Configuration conf=context.getConfiguration();
+				DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
+				DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
+				DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
 				if (!PubMedLibrary.indexArticle(result))
 				{
 					System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
@@ -118,10 +114,10 @@ public class IndexBuilder {
 			throws IOException {
 
 		String tableName=args[0];
-		
-		MYSQL_DB_USERNAME=args[1];
-		MYSQL_DB_PASSWORD=args[2];
-		System.out.println(args[1]+"\t"+args[2]);
+
+		conf.setStrings("MYSQL_DB_URL", args[1]);
+		conf.setStrings("MYSQL_DB_USERNAME", args[2]);
+		conf.setStrings("MYSQL_DB_PASSWORD", args[3]);
 
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
 		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);
