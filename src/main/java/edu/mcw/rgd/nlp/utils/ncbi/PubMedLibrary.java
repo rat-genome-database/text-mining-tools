@@ -857,34 +857,34 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				//				logger.info("Annotating: [" + dao.pmid + "]");
 				// Annotate title
 				if (dao.articleTitle != null && dao.articleTitle.length() > 0) {
-					System.out.println("ANNOTATING ARTILCE TITLE");
+
 					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleTitle, 0,
 							annotation_sets, annotator.isUseStemming()));
 				}
 				// Annotate abstract
 				if (dao.articleAbstract != null
 						&& dao.articleAbstract.length() > 0) {
-					System.out.println("ANNOTATING ARTILCE ABSTRACT");
+
 					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleAbstract, 1,
 							annotation_sets, annotator.isUseStemming()));
 				}
 				// Annotate MeSH terms
 				if (dao.meshTerms != null && dao.meshTerms.length() > 0) {
-					System.out.println("ANNOTATING ARTILCE MESH");
+
 					annResult.addAll(annotateToString(annotator, dao.pmid, dao.meshTerms, 2,
 							annotation_sets, annotator.isUseStemming()));
 				}
 
 				// Annotate Keywords
 				if (dao.keywords != null && dao.keywords.length() > 0) {
-					System.out.println("ANNOTATING ARTILCE KEYWORDS");
+
 					annResult.addAll(annotateToString(annotator, dao.pmid, dao.keywords, 3,
 							annotation_sets, annotator.isUseStemming()));
 				}
 
 				// Annotate Keywords
 				if (dao.chemicals != null && dao.chemicals.length() > 0) {
-					System.out.println("ANNOTATING ARTILCE CHEMICALS");
+
 					annResult.addAll(annotateToString(annotator, dao.pmid, dao.chemicals, 4,
 							annotation_sets, annotator.isUseStemming()));
 				}
@@ -893,7 +893,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			logger.error("Error in [" + dao.pmid + "]", e);
 			return annResult;
 		}
-		System.out.println("ANNOTATIONS SIZE: "+ annResult.size());
+
 		return annResult;
 	}
 
@@ -939,7 +939,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			}
 		}
 		annotator.clear();
-		System.out.println("=====================OUTPUTSTRING=============="+outputStr);
+
 		return outputStr;
 
 	}
@@ -1108,7 +1108,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 	public List<String> mrAnnotateHResult(Result result, String gateHome, boolean useStemming) {
 		if (PubMedLibrary.mrAnnoator == null) {
-			System.out.println("MR ANNOTATOR is null");
+		//	System.out.println("MR ANNOTATOR is null");
 			PubMedLibrary.mrAnnoator = getAnnotator(gateHome, false, useStemming);
 		}
 		return annotateFromHResult(PubMedLibrary.mrAnnoator, annSets, result, mrArticleDao);
@@ -1573,13 +1573,13 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			if(solrServers==null){
 				initSolrServers();
 			}
-			System.out.println("SOLR SERVERS LENGTH: "+ solrServers.length);
+		//	System.out.println("SOLR SERVERS LENGTH: "+ solrServers.length);
 			for(HttpSolrServer s:solrServers){
 				System.out.println(s.getBaseURL());
 			}
 			int serverId = solrServerIdGenerator.nextInt(solrServers.length);
 
-			System.out.println("SERVER ID: " + serverId);
+		//	System.out.println("SERVER ID: " + serverId);
 		}catch (Exception e){
 			e.printStackTrace();
 		}

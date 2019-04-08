@@ -68,13 +68,13 @@ public class DistributedAnnotator {
 	    	//  Path[] localCache = DistributedCache.getLocalCacheArchives(conf);
 			  Path[] localCache = context.getLocalCacheArchives();
 	    	  gateHome = localCache[0].toString();
-			  System.out.println("local cache gate home: "+ gateHome);
+			//  System.out.println("local cache gate home: "+ gateHome);
 	    	  Collection<String> setList = conf.getStringCollection(PubMedLibrary.MR_ANN_SETS);
 	    	  for (String annSet : setList) {
-	    		  System.out.println("Collecting: " + annSet);
+	    //		  System.out.println("Collecting: " + annSet);
 	    		  annotationSets.add(annSet);
 	    	  }
-			  System.out.println("ANNOTATION SETS: "+ annotationSets);
+		//	  System.out.println("ANNOTATION SETS: "+ annotationSets);
 	    	  colStr = conf.get("annotationColumn");
 	    	  if (colStr.equals(colStr.toUpperCase())) forcedTagging = true;
 			  col = Bytes.toBytes(colStr.toLowerCase());
@@ -90,7 +90,7 @@ public class DistributedAnnotator {
 	        throws IOException, InterruptedException {
 
 			if (counter == 0) {
-				System.out.println("COUNTER is ZERO: ");
+			//	System.out.println("COUNTER is ZERO: ");
 				pml = new PubMedLibrary();
 				pml.setAnnotationSets(annotationSets);
 				pml.resetAnnotator(gateHome, useStemming);
@@ -121,7 +121,7 @@ public class DistributedAnnotator {
 				for (String ann : annotations) {
 					finalStr += ann + "|";
 				}
-				System.out.println("FINAL STRING: "+ finalStr);
+			//	System.out.println("FINAL STRING: "+ finalStr);
 				Mutation dbComm = null;
 
 				if (finalStr.length() > 0) {
@@ -159,7 +159,7 @@ public class DistributedAnnotator {
 			counter ++;
 			counter_inner ++;
 			if (counter_inner == 1000) {
-				System.out.println(counter + " articles processed.");
+				//System.out.println(counter + " articles processed.");
 				counter_inner = 0;
 	//    		counter = 0;
 

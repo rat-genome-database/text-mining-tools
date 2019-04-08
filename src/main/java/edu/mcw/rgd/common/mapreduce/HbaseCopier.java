@@ -81,7 +81,7 @@ public class HbaseCopier {
 	    	counter ++;
 	    	counter_inner ++;
 	    	if (counter_inner == 1000) {
-	    		System.out.println(counter + " articles processed.");
+	    		//System.out.println(counter + " articles processed.");
 	    		counter_inner = 0;
 //	    		counter = 0;
 	    		
