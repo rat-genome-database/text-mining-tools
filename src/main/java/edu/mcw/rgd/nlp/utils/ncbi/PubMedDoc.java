@@ -5,8 +5,10 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
 import java.sql.Date;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +47,7 @@ import edu.mcw.rgd.nlp.utils.ncbi.PubMedJSoupDoc;
 public class PubMedDoc extends DocumentBase implements Document {
 
 	private String pubMedArticle;
-	static public HashMap<String, String> MONTH_TABLE = null;
+	static public Map<String, String> MONTH_TABLE;
 
 	public String getPubMedArticle() {
 		return pubMedArticle;
@@ -304,66 +306,67 @@ public class PubMedDoc extends DocumentBase implements Document {
 	/**
 	 * 
 	 */
-	public PubMedDoc() {
+	static {
 		if (MONTH_TABLE == null) {
-			MONTH_TABLE = new HashMap<String, String>();
-			MONTH_TABLE.put("1", "01");
-			MONTH_TABLE.put("2", "02");
-			MONTH_TABLE.put("3", "03");
-			MONTH_TABLE.put("4", "04");
-			MONTH_TABLE.put("5", "05");
-			MONTH_TABLE.put("6", "06");
-			MONTH_TABLE.put("7", "07");
-			MONTH_TABLE.put("8", "08");
-			MONTH_TABLE.put("9", "09");
-			MONTH_TABLE.put("10", "10");
-			MONTH_TABLE.put("11", "11");
-			MONTH_TABLE.put("12", "12");
+			Map<String, String>	TABLE = new HashMap<String, String>();
+			TABLE.put("1", "01");
+			TABLE.put("2", "02");
+			TABLE.put("3", "03");
+			TABLE.put("4", "04");
+			TABLE.put("5", "05");
+			TABLE.put("6", "06");
+			TABLE.put("7", "07");
+			TABLE.put("8", "08");
+			TABLE.put("9", "09");
+			TABLE.put("10", "10");
+			TABLE.put("11", "11");
+			TABLE.put("12", "12");
 
-			MONTH_TABLE.put("01", "01");
-			MONTH_TABLE.put("02", "02");
-			MONTH_TABLE.put("03", "03");
-			MONTH_TABLE.put("04", "04");
-			MONTH_TABLE.put("05", "05");
-			MONTH_TABLE.put("06", "06");
-			MONTH_TABLE.put("07", "07");
-			MONTH_TABLE.put("08", "08");
-			MONTH_TABLE.put("09", "09");
-			MONTH_TABLE.put("10", "10");
-			MONTH_TABLE.put("11", "11");
-			MONTH_TABLE.put("12", "12");
+			TABLE.put("01", "01");
+			TABLE.put("02", "02");
+			TABLE.put("03", "03");
+			TABLE.put("04", "04");
+			TABLE.put("05", "05");
+			TABLE.put("06", "06");
+			TABLE.put("07", "07");
+			TABLE.put("08", "08");
+			TABLE.put("09", "09");
+			TABLE.put("10", "10");
+			TABLE.put("11", "11");
+			TABLE.put("12", "12");
 
-			MONTH_TABLE.put(("Jan").toLowerCase(), "01");
-			MONTH_TABLE.put(("Feb").toLowerCase(), "02");
-			MONTH_TABLE.put(("Mar").toLowerCase(), "03");
-			MONTH_TABLE.put(("Apr").toLowerCase(), "04");
-			MONTH_TABLE.put(("May").toLowerCase(), "05");
-			MONTH_TABLE.put(("Jun").toLowerCase(), "06");
-			MONTH_TABLE.put(("Jul").toLowerCase(), "07");
-			MONTH_TABLE.put(("Aug").toLowerCase(), "08");
-			MONTH_TABLE.put(("Sep").toLowerCase(), "09");
-			MONTH_TABLE.put(("Oct").toLowerCase(), "10");
-			MONTH_TABLE.put(("Nov").toLowerCase(), "11");
-			MONTH_TABLE.put(("Dec").toLowerCase(), "12");
+			TABLE.put(("Jan").toLowerCase(), "01");
+			TABLE.put(("Feb").toLowerCase(), "02");
+			TABLE.put(("Mar").toLowerCase(), "03");
+			TABLE.put(("Apr").toLowerCase(), "04");
+			TABLE.put(("May").toLowerCase(), "05");
+			TABLE.put(("Jun").toLowerCase(), "06");
+			TABLE.put(("Jul").toLowerCase(), "07");
+			TABLE.put(("Aug").toLowerCase(), "08");
+			TABLE.put(("Sep").toLowerCase(), "09");
+			TABLE.put(("Oct").toLowerCase(), "10");
+			TABLE.put(("Nov").toLowerCase(), "11");
+			TABLE.put(("Dec").toLowerCase(), "12");
 
-			MONTH_TABLE.put(("January").toLowerCase(), "01");
-			MONTH_TABLE.put(("February").toLowerCase(), "02");
-			MONTH_TABLE.put(("March").toLowerCase(), "03");
-			MONTH_TABLE.put(("April").toLowerCase(), "04");
-			MONTH_TABLE.put(("May").toLowerCase(), "05");
-			MONTH_TABLE.put(("June").toLowerCase(), "06");
-			MONTH_TABLE.put(("July").toLowerCase(), "07");
-			MONTH_TABLE.put(("August").toLowerCase(), "08");
-			MONTH_TABLE.put(("September").toLowerCase(), "09");
-			MONTH_TABLE.put(("October").toLowerCase(), "10");
-			MONTH_TABLE.put(("November").toLowerCase(), "11");
-			MONTH_TABLE.put(("December").toLowerCase(), "12");
+			TABLE.put(("January").toLowerCase(), "01");
+			TABLE.put(("February").toLowerCase(), "02");
+			TABLE.put(("March").toLowerCase(), "03");
+			TABLE.put(("April").toLowerCase(), "04");
+			TABLE.put(("May").toLowerCase(), "05");
+			TABLE.put(("June").toLowerCase(), "06");
+			TABLE.put(("July").toLowerCase(), "07");
+			TABLE.put(("August").toLowerCase(), "08");
+			TABLE.put(("September").toLowerCase(), "09");
+			TABLE.put(("October").toLowerCase(), "10");
+			TABLE.put(("November").toLowerCase(), "11");
+			TABLE.put(("December").toLowerCase(), "12");
 
-			MONTH_TABLE.put(("Spring").toLowerCase(), "03");
-			MONTH_TABLE.put(("Summer").toLowerCase(), "06");
-			MONTH_TABLE.put(("Fall").toLowerCase(), "09");
-			MONTH_TABLE.put(("Autumn").toLowerCase(), "09");
-			MONTH_TABLE.put(("Winter").toLowerCase(), "12");
+			TABLE.put(("Spring").toLowerCase(), "03");
+			TABLE.put(("Summer").toLowerCase(), "06");
+			TABLE.put(("Fall").toLowerCase(), "09");
+			TABLE.put(("Autumn").toLowerCase(), "09");
+			TABLE.put(("Winter").toLowerCase(), "12");
+			MONTH_TABLE= Collections.unmodifiableMap(TABLE);
 		}
 		// TODO Auto-generated constructor stub
 	}

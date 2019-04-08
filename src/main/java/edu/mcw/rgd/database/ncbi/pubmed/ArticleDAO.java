@@ -218,19 +218,15 @@ public class ArticleDAO extends DAOBase {
 				}
 
 				Date jDate;
-				if (dateStr != null) {
-					try {
-							jDate = new Date(PUB_DATE_DF.parse(dateStr).getTime());
-						} catch (Exception e) {
-							System.err.println("Error in [" + pmid + "]");
-							System.err.println(dateStr);
-							System.err.println("Can't parse [" + dateStr + "] as a date. Using 1800/01/01.");
-							jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
-						}
-				} else {
-					jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
-				}
-		//	System.out.println("JDATE: "+ jDate);
+			try {
+                    jDate = new Date(PUB_DATE_DF.parse(dateStr).getTime());
+                } catch (Exception e) {
+                    System.err.println("Error in [" + pmid + "]");
+                    System.err.println(dateStr);
+                    System.err.println("Can't parse [" + dateStr + "] as a date. Using 1800/01/01.");
+                    jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+                }
+			//	System.out.println("JDATE: "+ jDate);
 				this.articlePubDate = jDate;
 				this.publicationYear = jDate.getYear() + 1900;
 				this.articleJournalDate = pmd.getArticleJournalDate();

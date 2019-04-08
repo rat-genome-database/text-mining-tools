@@ -3,6 +3,8 @@ package edu.mcw.rgd.nlp.utils.ncbi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos;
@@ -18,6 +20,7 @@ public class PubMedJSoupDoc {
 	public static void main(String[] args) {
 	//	String text=ReadWrite.read("data/pubmed_result.xml");
 		String text="<ns1:PubmedArticle><ns1:MedlineCitation Status=\"Publisher\" Owner=\"NLM\"><ns1:PMID Version=\"1\">26603200</ns1:PMID><ns1:DateCreated><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>25</ns1:Day></ns1:DateCreated><ns1:DateRevised><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>26</ns1:Day></ns1:DateRevised><ns1:Article PubModel=\"Print-Electronic\"><ns1:Journal><ns1:ISSN IssnType=\"Electronic\">1934-1563</ns1:ISSN><ns1:JournalIssue CitedMedium=\"Internet\"><ns1:PubDate><ns1:Year>1956-1957</ns1:Year><ns1:Month>Nov</ns1:Month><ns1:Day>18</ns1:Day></ns1:PubDate></ns1:JournalIssue><ns1:Title>PM &amp; R : the journal of injury, function, and rehabilitation</ns1:Title><ns1:ISOAbbreviation>PM R</ns1:ISOAbbreviation></ns1:Journal><ns1:ArticleTitle>Outcomes of Inpatient Rehabilitation in Patients with Simultaneous Bilateral Total Knee Arthroplasty.</ns1:ArticleTitle><ns1:Pagination><ns1:MedlinePgn/></ns1:Pagination><ns1:ELocationID EIdType=\"pii\">S1934-1482(15)01129-6</ns1:ELocationID><ns1:ELocationID EIdType=\"doi\">10.1016/j.pmrj.2015.11.005</ns1:ELocationID><ns1:Abstract><ns1:AbstractText Label=\"BACKGROUND\" NlmCategory=\"BACKGROUND\">The number of total knee arthroplasty (TKA) procedures performed in the United States is increasing each year, and the number of bilateral TKA procedures has also increased over the past 2 decades. However, there are limited studies in the literature that have investigated the rehabilitation outcomes of patients with bilateral TKA. This study was performed to provide information on the benefits and role of inpatient rehabilitation on patients after bilateral TKA.</ns1:AbstractText><ns1:AbstractText Label=\"OBJECTIVE\" NlmCategory=\"OBJECTIVE\">To investigate the functional outcomes, complications and transfer rates of patients in the inpatient rehabilitation setting who undergo simultaneous bilateral TKA.</ns1:AbstractText><ns1:AbstractText Label=\"DESIGN\" NlmCategory=\"METHODS\">Retrospective cohort study.</ns1:AbstractText><ns1:AbstractText Label=\"SETTING\" NlmCategory=\"METHODS\">Freestanding inpatient rehabilitation hospital.</ns1:AbstractText><ns1:AbstractText Label=\"PATIENTS\" NlmCategory=\"METHODS\">94 patients admitted to an inpatient rehabilitation hospital after simultaneous bilateral TKA from 2008-2013.</ns1:AbstractText><ns1:AbstractText Label=\"METHODS\" NlmCategory=\"METHODS\">Retrospective chart review of demographic, clinical and functional data for patients admitted to inpatient rehabilitation after simultaneous bilateral TKA.</ns1:AbstractText><ns1:AbstractText Label=\"MAIN OUTCOME MEASURES\" NlmCategory=\"METHODS\">Length of stay (LOS), admission and discharge Functional Independence Measure (FIM), FIM efficiency.</ns1:AbstractText><ns1:AbstractText Label=\"RESULTS\" NlmCategory=\"RESULTS\">The study included 27 (28.7%) male and 67 (71.3%) female patients ages 42.0 to 86.9 years, mean of 65.6 ?? 10.2 years. Mean length of time between surgery and admission to inpatient rehabilitation was 4.5 ?? 3.3 days. Mean LOS in rehabilitation was 11.7 ?? 4.2 days. Mean admission and discharge FIM scores were 87.3 ?? 11.7 and 113.4 ?? 4.8, respectively, with a mean FIM gain of 26.1 ?? 10.5. The mean FIM efficiency was 2.33 ?? 0.84. Eight patients required transfer to an acute care hospital. Complications leading to transfer to acute care facilities included sepsis, cardiac arrhythmias, knee dislocation and suspected small bowel obstruction. Eighty-eight patients were discharged home, 4 patients were discharged to skilled nursing facilities, and 2 patients were transferred to an acute care hospital and did not return to the inpatient rehabilitation hospital.</ns1:AbstractText><ns1:AbstractText Label=\"CONCLUSIONS\" NlmCategory=\"CONCLUSIONS\">Patients after simultaneous bilateral TKA demonstrate functional gains when admitted to inpatient rehabilitation facilities based on FIM gains and FIM efficiency scores. Eight and one-half percent of patients in this cohort required transfer to an acute care facility due to complications during inpatient rehabilitation, and 93.6% of patients were discharged home.</ns1:AbstractText><ns1:CopyrightInformation>Copyright ?? 2015 American Academy of Physical Medicine and Rehabilitation. Published by Elsevier Inc. All rights reserved.</ns1:CopyrightInformation></ns1:Abstract><ns1:AuthorList><ns1:Author><ns1:LastName>Chu</ns1:LastName><ns1:ForeName>Samuel K</ns1:ForeName><ns1:Initials>SK</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States. Electronic address: schu@ric.org.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author><ns1:LastName>Babu</ns1:LastName><ns1:ForeName>Ashwin N</ns1:ForeName><ns1:Initials>AN</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author><ns1:LastName>McCormick</ns1:LastName><ns1:ForeName>Zachary</ns1:ForeName><ns1:Initials>Z</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author><ns1:LastName>Mathews</ns1:LastName><ns1:ForeName>Amy</ns1:ForeName><ns1:Initials>A</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author><ns1:LastName>Toledo</ns1:LastName><ns1:ForeName>Santiago</ns1:ForeName><ns1:Initials>S</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author><ns1:LastName>Oswald</ns1:LastName><ns1:ForeName>Matthew</ns1:ForeName><ns1:Initials>M</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Physical Medicine and Rehabilitation, Northwestern University Feinberg, School of Medicine, and Rehabilitation Institute of Chicago, Chicago, IL, United States.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author></ns1:AuthorList><ns1:Language>ENG</ns1:Language><ns1:PublicationTypeList><ns1:PublicationType UI=\"\">JOURNAL ARTICLE</ns1:PublicationType></ns1:PublicationTypeList><ns1:ArticleDate DateType=\"Electronic\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>18</ns1:Day></ns1:ArticleDate></ns1:Article><ns1:MedlineJournalInfo><ns1:MedlineTA>PM R</ns1:MedlineTA><ns1:NlmUniqueID>101491319</ns1:NlmUniqueID><ns1:ISSNLinking>1934-1482</ns1:ISSNLinking></ns1:MedlineJournalInfo></ns1:MedlineCitation><ns1:PubmedData><ns1:History><ns1:PubMedPubDate PubStatus=\"received\"><ns1:Year>2015</ns1:Year><ns1:Month>6</ns1:Month><ns1:Day>29</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"revised\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>6</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"accepted\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>7</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"entrez\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>26</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"pubmed\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>26</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"medline\"><ns1:Year>2015</ns1:Year><ns1:Month>11</ns1:Month><ns1:Day>26</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate></ns1:History><ns1:PublicationStatus>aheadofprint</ns1:PublicationStatus><ns1:ArticleIdList><ns1:ArticleId IdType=\"pii\">S1934-1482(15)01129-6</ns1:ArticleId><ns1:ArticleId IdType=\"doi\">10.1016/j.pmrj.2015.11.005</ns1:ArticleId><ns1:ArticleId IdType=\"pubmed\">26603200</ns1:ArticleId></ns1:ArticleIdList></ns1:PubmedData></ns1:PubmedArticle>";
+		//	String text="<ns1:PubmedArticle><ns1:MedlineCitation Status=\"MEDLINE\" Owner=\"NLM\"><ns1:PMID Version=\"1\">30239366</ns1:PMID><ns1:DateCompleted><ns1:Year>2019</ns1:Year><ns1:Month>03</ns1:Month><ns1:Day>14</ns1:Day></ns1:DateCompleted><ns1:DateRevised><ns1:Year>2019</ns1:Year><ns1:Month>03</ns1:Month><ns1:Day>14</ns1:Day></ns1:DateRevised><ns1:Article PubModel=\"Print\"><ns1:Journal><ns1:ISSN IssnType=\"Electronic\">1536-9617</ns1:ISSN><ns1:JournalIssue CitedMedium=\"Internet\"><ns1:Volume>58</ns1:Volume><ns1:Issue>4</ns1:Issue><ns1:PubDate><ns1:MedlineDate>Fall 2018</ns1:MedlineDate></ns1:PubDate></ns1:JournalIssue><ns1:Title>International ophthalmology clinics</ns1:Title><ns1:ISOAbbreviation>Int Ophthalmol Clin</ns1:ISOAbbreviation></ns1:Journal><ns1:ArticleTitle>Optic Pathway Gliomas in Neurofibromatosis Type 1: Imaging and Monitoring.</ns1:ArticleTitle><ns1:Pagination><ns1:MedlinePgn>97-112</ns1:MedlinePgn></ns1:Pagination><ns1:ELocationID EIdType=\"doi\" ValidYN=\"Y\">10.1097/IIO.0000000000000241</ns1:ELocationID><ns1:AuthorList CompleteYN=\"Y\"><ns1:Author ValidYN=\"Y\"><ns1:LastName>Beres</ns1:LastName><ns1:ForeName>Shannon J</ns1:ForeName><ns1:Initials>SJ</ns1:Initials></ns1:Author></ns1:AuthorList><ns1:Language>eng</ns1:Language><ns1:PublicationTypeList><ns1:PublicationType UI=\"D016428\">Journal Article</ns1:PublicationType><ns1:PublicationType UI=\"D016454\">Review</ns1:PublicationType></ns1:PublicationTypeList></ns1:Article><ns1:MedlineJournalInfo><ns1:Country>United States</ns1:Country><ns1:MedlineTA>Int Ophthalmol Clin</ns1:MedlineTA><ns1:NlmUniqueID>0374731</ns1:NlmUniqueID><ns1:ISSNLinking>0020-8167</ns1:ISSNLinking></ns1:MedlineJournalInfo><ns1:ChemicalList><ns1:Chemical><ns1:RegistryNumber>0</ns1:RegistryNumber><ns1:NameOfSubstance UI=\"D015415\">Biomarkers</ns1:NameOfSubstance></ns1:Chemical></ns1:ChemicalList><ns1:CitationSubset>IM</ns1:CitationSubset><ns1:MeshHeadingList><ns1:MeshHeading><ns1:DescriptorName UI=\"D015415\" MajorTopicYN=\"N\">Biomarkers</ns1:DescriptorName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D005074\" MajorTopicYN=\"N\">Evoked Potentials, Visual</ns1:DescriptorName><ns1:QualifierName UI=\"Q000502\" MajorTopicYN=\"N\">physiology</ns1:QualifierName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D006801\" MajorTopicYN=\"N\">Humans</ns1:DescriptorName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D008279\" MajorTopicYN=\"N\">Magnetic Resonance Imaging</ns1:DescriptorName><ns1:QualifierName UI=\"Q000379\" MajorTopicYN=\"N\">methods</ns1:QualifierName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D009456\" MajorTopicYN=\"N\">Neurofibromatosis 1</ns1:DescriptorName><ns1:QualifierName UI=\"Q000150\" MajorTopicYN=\"Y\">complications</ns1:QualifierName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D020339\" MajorTopicYN=\"N\">Optic Nerve Glioma</ns1:DescriptorName><ns1:QualifierName UI=\"Q000175\" MajorTopicYN=\"Y\">diagnosis</ns1:QualifierName><ns1:QualifierName UI=\"Q000503\" MajorTopicYN=\"N\">physiopathology</ns1:QualifierName><ns1:QualifierName UI=\"Q000628\" MajorTopicYN=\"N\">therapy</ns1:QualifierName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D061848\" MajorTopicYN=\"N\">Optical Imaging</ns1:DescriptorName><ns1:QualifierName UI=\"Q000379\" MajorTopicYN=\"N\">methods</ns1:QualifierName></ns1:MeshHeading><ns1:MeshHeading><ns1:DescriptorName UI=\"D041623\" MajorTopicYN=\"N\">Tomography, Optical Coherence</ns1:DescriptorName><ns1:QualifierName UI=\"Q000379\" MajorTopicYN=\"N\">methods</ns1:QualifierName></ns1:MeshHeading></ns1:MeshHeadingList></ns1:MedlineCitation><ns1:PubmedData><ns1:History><ns1:PubMedPubDate PubStatus=\"entrez\"><ns1:Year>2018</ns1:Year><ns1:Month>9</ns1:Month><ns1:Day>22</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"pubmed\"><ns1:Year>2018</ns1:Year><ns1:Month>9</ns1:Month><ns1:Day>22</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"medline\"><ns1:Year>2019</ns1:Year><ns1:Month>3</ns1:Month><ns1:Day>15</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate></ns1:History><ns1:PublicationStatus>ppublish</ns1:PublicationStatus><ns1:ArticleIdList><ns1:ArticleId IdType=\"pubmed\">30239366</ns1:ArticleId><ns1:ArticleId IdType=\"doi\">10.1097/IIO.0000000000000241</ns1:ArticleId><ns1:ArticleId IdType=\"pii\">00004397-201805840-00006</ns1:ArticleId></ns1:ArticleIdList></ns1:PubmedData></ns1:PubmedArticle>";
 		System.out.println(pubArticleDate(text));
 		//		pmId(text);
 
@@ -192,7 +195,7 @@ public class PubMedJSoupDoc {
 	//----------------------------------------------------------------------
 	
 	public static String pubArticleDate(String text){
-
+        PubMedDoc doc= new PubMedDoc();
 		String year=new String();
 		String month=new String();
 		String medDate=new String();
@@ -213,12 +216,67 @@ public class PubMedJSoupDoc {
 
 				}
 
+
 		if (medDate != null && !medDate.equals("")) {
+			String[] seg = medDate.split(" ");
+			if (seg[0].length() > 2 ) {
+				String str=seg[0].toLowerCase().trim();
+
+					month = PubMedDoc.MONTH_TABLE.get(str);
+					if (month != null) {
+						month="/"+ month;
+						year = seg[1];
+					}
+
+			} else {
+				year = seg[0];
+				if (year.contains("-")) {
+					year = year.substring(0, year.indexOf("-"));
+				}
+
+				if (seg.length > 1)
+					month = seg[1].toLowerCase();
+				else month = "/01";
+			}
+		}else{
+			if (year.contains("-")) {
+				year = year.substring(0, year.indexOf("-"));
+			}
+			if (month.toLowerCase().contains("ja".toLowerCase()))
+				month = "/01";
+			else if (month.toLowerCase().contains("fe".toLowerCase()))
+				month = "/02";
+			else if (month.toLowerCase().contains("mar".toLowerCase()))
+				month = "/03";
+			else if (month.toLowerCase().contains("ap".toLowerCase()))
+				month = "/04";
+			else if (month.toLowerCase().contains("may".toLowerCase()))
+				month = "/05";
+			else if (month.toLowerCase().contains("jun".toLowerCase()))
+				month = "/06";
+			else if (month.toLowerCase().contains("jul".toLowerCase()))
+				month = "/07";
+			else if (month.toLowerCase().contains("au".toLowerCase()))
+				month = "/08";
+			else if (month.toLowerCase().contains("sep".toLowerCase()))
+				month = "/09";
+			else if (month.toLowerCase().contains("oc".toLowerCase()))
+				month = "/10";
+			else if (month.toLowerCase().contains("no".toLowerCase()))
+				month = "/11";
+			else if (month.toLowerCase().contains("de".toLowerCase()))
+				month = "/12";
+			if (month.isEmpty() || !month.contains("/"))
+				month = "/01";
+		}
+
+	/*	if (medDate != null && !medDate.equals("")) {
 				String[] seg = medDate.split(" ");
 				year = seg[0];
 				if(year.contains("-")){
 					year=year.substring(0, year.indexOf("-"));
 				}
+
 				if(seg.length>1)
 				month = seg[1].toLowerCase();
 			else  month="/01";
@@ -226,33 +284,8 @@ public class PubMedJSoupDoc {
 			if(year.contains("-")){
 				year=year.substring(0, year.indexOf("-"));
 			}
-		}
-		 		if (month.toLowerCase().contains("ja".toLowerCase()))
-					month = "/01";
-				else if (month.toLowerCase().contains("fe".toLowerCase()))
-					month = "/02";
-				else if (month.toLowerCase().contains("mar".toLowerCase()))
-					month = "/03";
-				else if (month.toLowerCase().contains("ap".toLowerCase()))
-					month = "/04";
-				else if (month.toLowerCase().contains("may".toLowerCase()))
-					month = "/05";
-				else if (month.toLowerCase().contains("jun".toLowerCase()))
-					month = "/06";
-				else if (month.toLowerCase().contains("jul".toLowerCase()))
-					month = "/07";
-				else if (month.toLowerCase().contains("au".toLowerCase()))
-					month = "/08";
-				else if (month.toLowerCase().contains("sep".toLowerCase()))
-					month = "/09";
-				else if (month.toLowerCase().contains("oc".toLowerCase()))
-					month = "/10";
-				else if (month.toLowerCase().contains("no".toLowerCase()))
-					month = "/11";
-				else if (month.toLowerCase().contains("de".toLowerCase()))
-					month = "/12";
-				if (month.isEmpty() || !month.contains("/"))
-					month = "/01";
+		}*/
+
 
 	//	}
 		return year+month+"/01";
