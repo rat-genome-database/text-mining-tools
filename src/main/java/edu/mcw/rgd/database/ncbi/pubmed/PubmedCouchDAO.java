@@ -7,7 +7,7 @@ public class PubmedCouchDAO extends CouchDAOBase {
 
 	public static void initConnection() {
 		if (connection == null) initConnection("http://localhost:5984",
-				  "pubmed18", "article_views");
+				  "articles", "article_views");
 	}
 	
 	public static String getDoc(String pmid) {

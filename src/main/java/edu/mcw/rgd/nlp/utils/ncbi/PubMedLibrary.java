@@ -11,14 +11,7 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +59,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 	//	public static String solrServer = "http://localhost:8080/solr/";  // this one was disabled!
 	//public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
-	public static String HOST_NAME;
+	public static String HOST_NAME="http://green.rgd.mcw.edu";
 	public static HttpSolrServer[] solrServers = null;
 	public static Random solrServerIdGenerator = new Random();
 
@@ -909,7 +902,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		if (useStemming) {
 			doc= annotator.process(Stemmer.stem(text_to_annotate));
 		} else {
-			doc= annotator.process(text_to_annotate);
+			doc= annotator.process1(text_to_annotate, pmid);
 		}
 		List<String> outputStr = new ArrayList<String>();
 		if (doc != null) {
@@ -1245,6 +1238,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			SortedCountMap rgd_gene_map = new SortedCountMap();
 			SortedCountMap organism_map = new SortedCountMap();
 			HashMap<String, SortedCountMap> onto_maps = new HashMap<String, SortedCountMap>();
+			Set<String> organism_common=new HashSet<>();
 			for (String onto_name : Ontology.getRgdOntologies()) {
 				onto_maps.put(onto_name, new SortedCountMap());
 			}
@@ -1319,6 +1313,9 @@ public class PubMedLibrary extends LibraryBase implements Library {
 					rgd_gene_map.add(annotation.features_table.get("RGD_ID"),
 							ann_text, ann_pos);
 				} else if (annotation.annotation_set.equals("OrganismTagger")) {
+					String commonName = (String) annotation.features_table
+							.get("Species");
+					organism_common.add(commonName.trim().toLowerCase());
 					String organism_id = (String) annotation.features_table
 							.get("ncbiId");
 					organism_map.add(organism_id, ArticleOrganismClassifier
@@ -1362,6 +1359,10 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			organism_map.sort();
 			addMaptoDoc(solr_doc, organism_map, "organism_ncbi_id",
 					"organism_term", "organism_count", "organism_pos");
+			for(String name: organism_common){
+				System.out.println("COMMON NAME: "+ name);
+				solr_doc.addField("organism_common_name",name );
+			}
 
 			for (String onto_name : Ontology.getRgdOntologies()) {
 				SortedCountMap onto_map = onto_maps.get(onto_name);

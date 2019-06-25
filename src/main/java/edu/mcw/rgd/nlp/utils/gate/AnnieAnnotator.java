@@ -77,7 +77,25 @@ public class AnnieAnnotator {
 			return null;
 		}
 	}
-	
+	public Document process1(String input_str, Long pmid) {
+		try {
+//			System.out.println("Text stemmed: " + useStemming);
+//			System.out.println("Annotating text: " + input_str);
+			clear();
+			Document doc = Factory.newDocument(input_str);
+			corpus.add(doc);
+//			doc.setContent(new DocumentContentImpl(input_str));
+			application.execute();
+			return doc;
+		} catch (Exception e) {
+			System.err.println("Error in annotating:-------" + pmid);
+			System.err.println("input_str");
+			System.err.println("----------------------");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public void clear() {
 		if (corpus.size() > 0) {
 			Document doc = (Document) corpus.get(0);

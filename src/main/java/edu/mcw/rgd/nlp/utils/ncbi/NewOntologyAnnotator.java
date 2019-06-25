@@ -8,13 +8,11 @@ import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
 import java.util.Base64;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -33,9 +31,7 @@ import java.util.List;
  * Created by jthota on 8/22/2018.
  */
 public class NewOntologyAnnotator {
-    public static class Map extends
-            Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Writable> {
-
+    public static class Map extends TableMapper<ImmutableBytesWritable , Mutation>{
         protected PubMedLibrary pml;
         protected List<String> annotationSets;
         protected String gateHome;
@@ -79,7 +75,7 @@ public class NewOntologyAnnotator {
         @Override
         protected void map(ImmutableBytesWritable rowKey, Result result, Context context)
                 throws IOException, InterruptedException {
-            System.out.println("ROW KEY: "+ rowKey);
+
             if (counter == 0) {
                 pml = new PubMedLibrary();
                 pml.setAnnotationSets(annotationSets);
@@ -98,7 +94,7 @@ public class NewOntologyAnnotator {
             }
             System.out.println("HAS ARTICLE: "+ hasArticle);
             if (hasArticle) {  //---------- original
-                Writable  dbComm;
+                Mutation  dbComm;
                 List<String> annotations = pml.mrAnnotateHResult(result, this.gateHome, useStemming);
 
                 String finalStr = "";
@@ -113,12 +109,12 @@ public class NewOntologyAnnotator {
                     Put put = new Put(rowKey.get());
                     put.addColumn(colFamily, col, docTS, Bytes.toBytes(finalStr));
 
-                    dbComm =(Writable) put;
+                    dbComm = put;
 
                 } else {
                     Delete delete = new Delete(rowKey.get());
                     delete.addColumn(colFamily, col);
-                    dbComm = (Writable) delete;  //------------------------------------------
+                    dbComm = delete;  //------------------------------------------
                 }
                 try {
 
@@ -127,7 +123,7 @@ public class NewOntologyAnnotator {
                         context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
                         Put tagPut= new Put(rowKey.get());
                         tagPut.addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
-                        context.write(new ImmutableBytesWritable(rowKey.get()), (Writable) tagPut);
+                        context.write(new ImmutableBytesWritable(rowKey.get()),  tagPut);
 
                     } else {
                         // 	  System.err.println("Deleting annotations...");
@@ -136,7 +132,7 @@ public class NewOntologyAnnotator {
                         tagPut.addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
 //				              context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);  //--------------------------------------
 
-                        context.write(new ImmutableBytesWritable(rowKey.get()), (Writable) tagPut);
+                        context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
                     }
                 } catch (InterruptedException e) {
                     System.err.println("Error in saving to HBase:" + pmid);
@@ -177,8 +173,10 @@ public class NewOntologyAnnotator {
         if(args[5]!=null && args[6]!=null) {
             byte[] startRow = Bytes.toBytes(args[5]);
             byte[] stopRow = Bytes.toBytes(args[6]);
-            sc.setStartRow(startRow);
-            sc.setStopRow(stopRow);
+         /*   sc.setStartRow(startRow);
+            sc.setStopRow(stopRow);*/
+            sc.withStartRow(startRow);
+            sc.withStopRow(stopRow);
         }
         //	sc.setCaching(400);
         conf.set(TableInputFormat.SCAN, convertScanToString(sc));
@@ -203,8 +201,8 @@ public class NewOntologyAnnotator {
 			   */
         conf.setStrings(PubMedLibrary.MR_ANN_SETS, annotationSets);
         Job job = new Job(conf, "Annotator using " + args[1]);
-        job.setJarByClass(IndexBuilder.class);
-        job.setMapperClass(DistributedAnnotator.Map.class);
+        job.setJarByClass(NewOntologyAnnotator.class);
+        job.setMapperClass(NewOntologyAnnotator.Map.class);
         job.setNumReduceTasks(0);
         job.setInputFormatClass(TableInputFormat.class);
         TableMapReduceUtil.initTableReducerJob(args[0], null, job);

@@ -60,8 +60,7 @@ public class HBaseLoader {
 		
 		while (m.find()) {
     		String articleXml = m.group();
-    		System.out.println();
-    		
+
     		Matcher m1 = pmidPattern.matcher(articleXml);
     		if (m1.find()) {
         		String pmid = m1.group(1);
