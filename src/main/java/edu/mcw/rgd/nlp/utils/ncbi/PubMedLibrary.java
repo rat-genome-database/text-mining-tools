@@ -59,7 +59,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 	//	public static String solrServer = "http://localhost:8080/solr/";  // this one was disabled!
 	//public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
-	public static String HOST_NAME="http://green.rgd.mcw.edu";
+	public static String HOST_NAME="http://garak.rgd.mcw.edu";
 	public static HttpSolrServer[] solrServers = null;
 	public static Random solrServerIdGenerator = new Random();
 
@@ -1315,7 +1315,12 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				} else if (annotation.annotation_set.equals("OrganismTagger")) {
 					String commonName = (String) annotation.features_table
 							.get("Species");
+					if(commonName!=null)
 					organism_common.add(commonName.trim().toLowerCase());
+					String docName=(String) annotation.features_table.get("docName");
+					if(docName!=null){
+						organism_common.add(docName);
+					}
 					String organism_id = (String) annotation.features_table
 							.get("ncbiId");
 					organism_map.add(organism_id, ArticleOrganismClassifier
@@ -1360,7 +1365,6 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			addMaptoDoc(solr_doc, organism_map, "organism_ncbi_id",
 					"organism_term", "organism_count", "organism_pos");
 			for(String name: organism_common){
-				System.out.println("COMMON NAME: "+ name);
 				solr_doc.addField("organism_common_name",name );
 			}
 
