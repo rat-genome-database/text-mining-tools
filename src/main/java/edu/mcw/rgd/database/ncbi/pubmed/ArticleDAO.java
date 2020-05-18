@@ -200,7 +200,6 @@ public class ArticleDAO extends DAOBase {
 			   pmds.setDocXml(xmlStr);
 			   pmds.parseDocSet();
 			   PubMedDoc pmd = pmds.getDoc(0);
-
 			   
 			   	
 //			   	this.pmid = Long.valueOf(pmd.getPMID());
