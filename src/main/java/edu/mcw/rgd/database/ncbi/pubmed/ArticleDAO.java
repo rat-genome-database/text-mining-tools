@@ -4,8 +4,11 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Map;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.hbase.client.Result;
 
 import edu.mcw.rgd.common.utils.BasicUtils;
@@ -189,7 +192,72 @@ public class ArticleDAO extends DAOBase {
 			return false;
 		}
 	}
-	
+	public boolean getPreprintArticleFromHResult(Result result) {
+		try {
+			String jsonStr = HBaseConnection.getField(result, "d", "x");
+			ObjectMapper mapper= new ObjectMapper();
+			Map article=mapper.readValue(jsonStr, Map.class);
+			if (jsonStr == null || jsonStr.length() == 0) return false;
+
+			this.pmid = Long.parseLong(getArticleId(article));
+			this.articleTitle = (String) article.get("rel_title");
+			this.articleAbstract = article.get("rel_abs").toString();
+			String dateStr = article.get("rel_date").toString().replace("-","/");
+
+
+			Date jDate;
+			if (dateStr != null) {
+				try {
+					jDate = new Date(PUB_DATE_DF.parse(dateStr).getTime());
+				} catch (Exception e) {
+					System.err.println("Error in [" + pmid + "]");
+					System.err.println(dateStr);
+					System.err.println("Can't parse [" + dateStr + "] as a date. Using 1800/01/01.");
+					jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+				}
+			} else {
+				jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+			}
+			//	System.out.println("JDATE: "+ jDate);
+			this.articlePubDate = jDate;
+			this.publicationYear = jDate.getYear() + 1900;
+			this.articleAuthors = getAuthors(article);
+			this.publicationTypes=new String[1];
+			this.publicationTypes[0]="Preprint "+ article.get("rel_site");
+			if(article.get("rel_doi")!=null)
+				this.doi =article.get("rel_doi").toString();
+			return true;
+		} catch (Exception e) {
+
+			System.err.println("Error in [" + pmid + "]");
+			System.err.println("This is not a fatal error!");
+
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public String getAuthors(Map article){
+		ArrayList<Object> authors= (ArrayList<Object>) article.get("rel_authors");
+		StringBuilder sb=new StringBuilder();
+		for(Object o:authors){
+			Map<String, String> map= (Map<String, String>) o;
+			sb.append(map.get("author_name")).append(";");
+
+		}
+		//	System.out.println(sb.toString());
+		return sb.toString();
+	}
+	public static String getArticleId(Map article)  {
+
+		String articleId=new String();
+		String doi= article.get("rel_link").toString();
+		int index= doi.lastIndexOf("/")+1;
+		articleId=doi.substring(index).replace("\"","");
+		if(articleId.contains(".")){
+			return articleId.substring(articleId.lastIndexOf(".")+1);
+		}
+		return articleId;
+	}
 	public boolean getArticleFromHResult(Result result) {
 		try {
 			   PubMedDocSet pmds = new PubMedDocSet();

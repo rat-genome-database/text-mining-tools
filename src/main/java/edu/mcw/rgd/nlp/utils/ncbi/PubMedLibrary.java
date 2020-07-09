@@ -102,8 +102,11 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		for(int solrServerId=0;solrServerId<20;solrServerId++){
 			String solrServerString=HOST_NAME+":"+(basePort+solrServerId) +"/solr/";
-		//	System.out.println(solrServerString);
-		   solrServers[solrServerId]=new HttpSolrServer(solrServerString);
+			try {
+				solrServers[solrServerId] = new HttpSolrServer(solrServerString);
+			} catch (Exception e) {
+			return;
+		}
 		}
 		/*try {
 			int serverId = 0;
@@ -841,7 +844,53 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		}
 		return annResult;
 	}
+	public List<String> annotateFromPrePrintHResult(AnnieAnnotator annotator,
+													List<String> annotation_sets, Result result, ArticleDAO dao) {
+		List<String> annResult = new ArrayList<String>();
+		try {
+			if (dao.getPreprintArticleFromHResult(result)) {
+				//				logger.info("Annotating: [" + dao.pmid + "]");
+				// Annotate title
+				if (dao.articleTitle != null && dao.articleTitle.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE TITLE");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleTitle, 0,
+							annotation_sets, annotator.isUseStemming()));
+				}
+				// Annotate abstract
+				if (dao.articleAbstract != null
+						&& dao.articleAbstract.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE ABSTRACT");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleAbstract, 1,
+							annotation_sets, annotator.isUseStemming()));
+				}
+				// Annotate MeSH terms
+				if (dao.meshTerms != null && dao.meshTerms.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE MESH");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.meshTerms, 2,
+							annotation_sets, annotator.isUseStemming()));
+				}
 
+				// Annotate Keywords
+				if (dao.keywords != null && dao.keywords.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE KEYWORDS");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.keywords, 3,
+							annotation_sets, annotator.isUseStemming()));
+				}
+
+				// Annotate Keywords
+				if (dao.chemicals != null && dao.chemicals.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE CHEMICALS");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.chemicals, 4,
+							annotation_sets, annotator.isUseStemming()));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error in [" + dao.pmid + "]", e);
+			return annResult;
+		}
+		System.out.println("ANNOTATIONS SIZE: "+ annResult.size());
+		return annResult;
+	}
 	public List<String> annotateFromHResult(AnnieAnnotator annotator,
 			List<String> annotation_sets, Result result, ArticleDAO dao) {
 		List<String> annResult = new ArrayList<String>();
@@ -1106,7 +1155,13 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		}
 		return annotateFromHResult(PubMedLibrary.mrAnnoator, annSets, result, mrArticleDao);
 	}
-
+	public List<String> mrAnnotatePrePrintHResult(Result result, String gateHome, boolean useStemming) {
+		if (PubMedLibrary.mrAnnoator == null) {
+			System.out.println("MR ANNOTATOR is null");
+			PubMedLibrary.mrAnnoator = getAnnotator(gateHome, false, useStemming);
+		}
+		return annotateFromPrePrintHResult(PubMedLibrary.mrAnnoator, annSets, result, mrArticleDao);
+	}
 	public static void mrAnnotateToFile(Job job, String[] args) {
 		if (args.length < 4) {
 			System.out
@@ -1401,6 +1456,218 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				SolrServer server = solrServers[serverId];
 				UpdateRequest req = new UpdateRequest();
 				req.add(solr_doc);
+				if(server!=null){
+
+					UpdateResponse rsp = req.process(server);
+
+
+				}
+
+				return true;
+
+			} catch (Exception e) {
+
+				System.err.println("Error when indexing:" + pmidStr);
+				e.printStackTrace();
+				return true;
+			}
+		}
+
+		return true;
+	}
+	public static Boolean indexPreprintArticle(Result result) throws Exception {
+		ArticleDAO art = new ArticleDAO();
+		Boolean indexable = true;
+
+		if (art.getPreprintArticleFromHResult(result)) {
+
+			List<AnnotationRecord> annotations = AnnotationDAO.getAnnotationsFromResult(result);
+			List<String> links = AnnotationDAO.getLinksFromResult(result);
+			String pmidStr = Long.toString(art.pmid);
+			PubMedSolrDoc solr_doc = new PubMedSolrDoc();
+
+			solr_doc.addField("pmid", pmidStr);
+			solr_doc.addField("title", art.articleTitle);
+			solr_doc.addField("abstract", art.articleAbstract);
+			solr_doc.addField("p_date", art.articlePubDate);
+			solr_doc.addField("authors", art.articleAuthors);
+			solr_doc.addField("p_year", art.publicationYear);
+			if (art.doi != null) solr_doc.addField("doi_s", art.doi);
+
+
+
+			if (art.publicationTypes != null) {
+				for (String pt : art.publicationTypes) {
+					solr_doc.addField("p_type", pt);
+				}
+			}
+
+			SortedCountMap gene_map = new SortedCountMap();
+			SortedCountMap rgd_gene_map = new SortedCountMap();
+			SortedCountMap organism_map = new SortedCountMap();
+			List<String> nonSearchableTaxons=new ArrayList<>(Arrays.asList(
+					"7955", "7227","6239","60711","10181","559292"));
+			Set<String> rgdObjects=new HashSet<>();
+			HashMap<String, SortedCountMap> onto_maps = new HashMap<String, SortedCountMap>();
+			for (String onto_name : Ontology.getRgdOntologies()) {
+				onto_maps.put(onto_name, new SortedCountMap());
+			}
+
+			for (AnnotationRecord annotation : annotations) {
+				String ann_section = "";
+				switch (annotation.text_location) {
+					case 0:
+						ann_section = art.articleTitle;
+						break;
+					case 1:
+						ann_section = art.articleAbstract;
+						break;
+					case 2:
+						ann_section = art.meshTerms;
+						break;
+					case 3:
+						ann_section = art.keywords;
+						break;
+					case 4:
+						ann_section = art.chemicals;
+						break;
+				}
+				String ann_text, ann_pos;
+
+				ann_pos = String.format("%d;%d-%d", annotation.text_location,
+						annotation.text_start,
+						annotation.text_end);
+				if(annotation.annotation_set==null)
+					annotation.annotation_set="Nulllll";
+
+				if (!annotation.annotation_set.equals("OrganismTagger")) {
+					try {
+						ann_text = ann_section.substring(annotation.text_start,
+								annotation.text_end);
+
+					} catch (Exception e) {
+
+						System.err.println("Error getting text: [" + pmidStr + ":" + annotation.annotation_set
+								+ "] " + annotation.text_location + ":" + annotation.text_start + ", " + annotation.text_end + " from ["
+								+ ann_section + "]");
+						ann_text = "";
+						indexable = false;
+						break;
+					}
+				} else {
+					ann_text = "";
+				}
+//System.out.println("ANNOTATION SET: "+annotation.annotation_set);
+
+				if (annotation.annotation_set.equals("GENES") && !annotation.features_table.get("type").equals("CellLine")
+						&& !annotation.features_table.get("type").equals("CellType")
+						&& !annotation.features_table.get("type").equals("RNA")) {
+					gene_map.add(ann_text, "", ann_pos);
+					// solr_doc.add("gene", ann_text);
+				} else if (annotation.annotation_set.equals("RGDGENE")) {
+					//	System.out.println("RGDGENE RGD_ID: "+annotation.features_table.get("RGD_ID")+"\t"+ann_text+"\t"+ ann_pos);
+					if(!rgdObjects.contains(ann_text.trim().toLowerCase())) {
+						rgdObjects.add(ann_text.trim().toLowerCase());
+						String termType= (String) annotation.features_table.get("term_type");
+						if(!nonSearchableTaxons.contains(termType)) {
+							rgd_gene_map.add(annotation.features_table.get("RGD_ID"), ann_text , ann_pos);
+						}else{
+							StringBuilder sb=new StringBuilder();
+							sb.append(ann_text).append(" (TAXON:").append(annotation.features_table.get("term_type")).append(")");
+							if(annotation.features_table.get("RGD_ID")!=null)
+								gene_map.add(sb.toString(),annotation.features_table.get("RGD_ID") , ann_pos);
+							else
+								gene_map.add(sb.toString() ,"0",  ann_pos);
+						}
+					}
+
+				} else if (annotation.annotation_set.equals("OrganismTagger")) {
+					String organism_id = (String) annotation.features_table
+							.get("ncbiId");
+					organism_map.add(organism_id, ArticleOrganismClassifier
+							.getNameByID(Long.parseLong(organism_id)), ann_pos);
+				} else if (annotation.annotation_set.equals("Ontologies")) {
+					String onto_name = (String) annotation.features_table
+							.get("minorType");
+					onto_maps.get(onto_name).add(
+							annotation.features_table.get("ONTO_ID"), ann_text, ann_pos);
+				} else if (annotation.annotation_set.equals("Mutations")) {
+					onto_maps.get("MT").add((String) annotation.features_table
+							.get("wNm"), ann_text, ann_pos);
+				} else if (annotation.annotation_set.equals("SNP")) {
+					String snpStr = (String) annotation.features_table
+							.get("string");
+					try {
+						onto_maps.get("MT").add(snpStr.replaceAll("\\s",""), ann_text, ann_pos);
+					} catch (Exception e) {
+						System.err.println("Error in getting SNP annotations of " + pmidStr);
+						e.printStackTrace();
+						throw e;
+					}
+				}
+			}
+
+
+
+
+			if (!indexable){
+
+				return false;
+			}
+
+			gene_map.sort();
+			addMaptoDoc(solr_doc, gene_map, "gene", "xdb_id", "gene_count", "gene_pos");
+
+			rgd_gene_map.sort();
+			addMaptoDoc(solr_doc, rgd_gene_map, "rgd_obj_id", "rgd_obj_term",
+					"rgd_obj_count", "rgd_obj_pos");
+
+			organism_map.sort();
+			addMaptoDoc(solr_doc, organism_map, "organism_ncbi_id",
+					"organism_term", "organism_count", "organism_pos");
+
+			for (String onto_name : Ontology.getRgdOntologies()) {
+				SortedCountMap onto_map = onto_maps.get(onto_name);
+				onto_map.sort(true);
+				if (onto_name.equals("MT") && links != null) {
+					for (String linkId : links) {
+						onto_map.appendVirtualEntry("rs"+linkId);
+					}
+				}
+				SolrOntologyEntry solr_entry = Ontology.getSolrOntoFields()
+						.get(onto_name);
+				addMaptoDoc(solr_doc, onto_map, solr_entry.getIdFieldName(),
+						solr_entry.getTermFieldName(),
+						solr_entry.getCountFieldName(),
+						solr_entry.getPosFieldName());
+			}
+
+			try {
+				// Using simple post
+				// Server server = new Server(solrServer);
+
+
+				if (solrServers == null) initSolrServers();
+
+				// Used to use the last digit of PMID to decide which Solr server to process the request.
+				// After HBase changed to use reversed PMID as keys for balancing reasons, one MR task usually
+				// only process articles that have the same last digit of PMID. The load on the Solr
+				// servers are not balanced since one MR task will only use one Solr core.
+				//			int serverId = Integer.parseInt(pmidStr.substring(pmidStr.length()-1));
+
+				// Change to pick Solr server with a random number. This also allows to use an arbitrary
+				// number of Solr cores.
+
+				int serverId = solrServerIdGenerator.nextInt(solrServers.length);
+
+
+
+				SolrServer server = solrServers[serverId];
+
+				UpdateRequest req = new UpdateRequest();
+				req.add(solr_doc);
+
+
 				if(server!=null){
 
 					UpdateResponse rsp = req.process(server);
