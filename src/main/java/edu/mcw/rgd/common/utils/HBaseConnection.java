@@ -109,10 +109,6 @@ public class HBaseConnection {
 //       config.addResource(new Path("/var/lib/ambari-server/resources/common-services/HBASE/0.96.0.2.0/configuration/hbase-site.xml"));
 
 		config = HBaseConfiguration.create();
-	/*	config.set("hbase.zookeeper.property.clientPort", "2181");
-		config.set("hbase.zookeeper.quorum", "gray03");
-		config.set("zookeeper.znode.parent", "/hbase-unsecure");
-	   */
 	    
 //       config.set("hbase.zookeeper.quorum", this.dbHost);
 
