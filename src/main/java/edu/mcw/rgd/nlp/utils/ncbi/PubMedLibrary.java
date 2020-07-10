@@ -57,9 +57,7 @@ import gate.Document;
  */
 public class PubMedLibrary extends LibraryBase implements Library {
 
-	//	public static String solrServer = "http://localhost:8080/solr/";  // this one was disabled!
-	//public static String solrServer = "http://green.rgd.mcw.edu:8080/solr/";  // this one was enabled!
-	public static String HOST_NAME="http://green.rgd.mcw.edu";
+	public static String HOST_NAME;
 	public static HttpSolrServer[] solrServers = null;
 	public static Random solrServerIdGenerator = new Random();
 
