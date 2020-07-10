@@ -36,7 +36,10 @@ public class PreprintIndexBuilder {
         protected void map(ImmutableBytesWritable rowKey, Result result, Context context)
                 throws IOException, InterruptedException {
             try {
-
+                Configuration conf=context.getConfiguration();
+                DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
+                DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
+                DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
                 if (!PubMedLibrary.indexPreprintArticle(result))
                 {
                     System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
@@ -80,7 +83,10 @@ public class PreprintIndexBuilder {
     public static Job configureJob(Configuration conf, String [] args)
             throws IOException {
 
-
+        conf.setStrings("MYSQL_DB_URL", args[1]);
+        conf.setStrings("MYSQL_DB_USERNAME", args[2]);
+        conf.setStrings("MYSQL_DB_PASSWORD", args[3]);
+        conf.setStrings("HOST_NAME", args[4]);
         conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
         String tableName=args[0];
 
