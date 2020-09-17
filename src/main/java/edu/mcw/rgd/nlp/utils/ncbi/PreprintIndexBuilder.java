@@ -28,6 +28,11 @@ public class PreprintIndexBuilder {
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf=context.getConfiguration();
+            DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
+            DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
+            DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
+            PubMedLibrary.HOST_NAME=conf.get("HOST_NAME");
             ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
             aoc.LoadFromHDFS(context);
         }
@@ -83,7 +88,10 @@ public class PreprintIndexBuilder {
 
         conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
         String tableName=args[0];
-
+        conf.setStrings("MYSQL_DB_URL", args[1]);
+        conf.setStrings("MYSQL_DB_USERNAME", args[2]);
+        conf.setStrings("MYSQL_DB_PASSWORD", args[3]);
+        conf.setStrings("HOST_NAME", args[4]);
         conf.set(TableInputFormat.INPUT_TABLE, tableName);
 
         Job job = new Job(conf, "Indexing HBase Preprint :" + tableName + " to Solr");
@@ -107,10 +115,8 @@ public class PreprintIndexBuilder {
         System.out.println("============================================================");
 
         Configuration conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.quorum", "gray03.rgd.mcw.edu");
-        conf.set("hbase.master", "gray01.rgd.mcw.edu:60000");
-        conf.set("hbase.zookeeper.property.clientPort", "2181");
         conf.set("zookeeper.znode.parent", "/hbase-unsecure");
+
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         //		    if(otherArgs.length < 3) {
         //		      System.err.println("Only " + otherArgs.length + " arguments supplied, required: 3");
@@ -119,7 +125,6 @@ public class PreprintIndexBuilder {
         //		    }
         Job job = configureJob(conf, otherArgs);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
-        //PubMedLibrary.initSolrServers();
     }
 
 }

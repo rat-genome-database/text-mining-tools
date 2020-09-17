@@ -116,15 +116,10 @@ public class IndexBuilder {
 		conf.setStrings("MYSQL_DB_PASSWORD", args[3]);
 		conf.setStrings("HOST_NAME", args[4]);
 		conf.set(TableInputFormat.SCAN, convertScanToString(new Scan()));
-		//		conf.set(TableInputFormat.INPUT_TABLE, PubMedLibrary.HBASE_NAME);
-
 
 		conf.set(TableInputFormat.INPUT_TABLE, tableName);
-	/*	conf.set("hbase.zookeeper.quorum", "tucker.rgd.mcw.edu");
-		conf.set("zookeeper.znode.parent", "/hbase-unsecure");*/
 
 		Job job = new Job(conf, "Indexing HBase:" + tableName + " to Solr");
-//		Job job = new Job(conf, "Indexing HBase:" + "pubmed" + " to Solr");
 
 		job.setJarByClass(IndexBuilder.class);
 		job.setMapperClass(Map.class);
@@ -132,27 +127,17 @@ public class IndexBuilder {
 		job.setInputFormatClass(TableInputFormat.class);
 		
 		TableMapReduceUtil.initTableReducerJob(tableName, null, job);
-		
-//		TableMapReduceUtil.initTableReducerJob("pubmed", null, job);
 
 		return job;
 	}
 
-//	private static String convertScanToString(Scan scan) throws IOException {  
-//		ByteArrayOutputStream out = new ByteArrayOutputStream();  
-//		DataOutputStream dos = new DataOutputStream(out);  
-//		scan.write(dos);
-//		
-//		return Base64.encodeBytes(out.toByteArray());  
-//	}  
+
 	
 	public static String convertScanToString(Scan scan) throws IOException {
 		   return Base64.getEncoder().encodeToString(ProtobufUtil.toScan(scan).toByteArray());
 		 }
 
-//	static Scan convertStringToScan(String base64) throws IOException {
-//	    return ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.decode(base64)));
-//	  }
+
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -167,7 +152,6 @@ public class IndexBuilder {
 		//		    }
 		Job job = configureJob(conf, otherArgs);
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
-		//PubMedLibrary.initSolrServers();
 	}
 
 }

@@ -35,34 +35,35 @@ public class HBaseBiorvixLoader {
         private static byte[] colFamily = Bytes.toBytes("d");
         private static byte[] col = Bytes.toBytes("x");
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            ObjectMapper objectMapper=new ObjectMapper();
-            JsonNode node=objectMapper.readTree(value.toString());
-             Iterator it =node.get("rels").iterator();
-            Date date = new Date();
-            SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyy");
-            System.out.println(formatter.format(date));
-             while(it.hasNext()){
-             //  System.out.println(it.next()+"\n================");
-                 ObjectNode article= (ObjectNode) it.next();
-                 String articleId=getArticleId(article);
-                long id=Long.parseLong(articleId );
-                 String articleid_r = PubMedLibrary.pmidToHbaseKey(articleId);
-              // System.out.println(articleId);
-              //   long ts= new Date().getYear();
-                 long ts= Long.parseLong(formatter.format(date));
-                 Put put = new Put(Bytes.toBytes(articleid_r));
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode node = objectMapper.readTree(value.toString());
+            if (node != null && node.get("collection") != null) {
+                Iterator it = node.get("collection").iterator();
+                Date date = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyy");
+                System.out.println(formatter.format(date));
+                while (it.hasNext()) {
+                    //  System.out.println(it.next()+"\n================");
+                    ObjectNode article = (ObjectNode) it.next();
+                    String articleId = getArticleId(article);
+                    long id = Long.parseLong(articleId);
+                    String articleid_r = PubMedLibrary.pmidToHbaseKey(articleId);
+                    // System.out.println(articleId);
+                    //   long ts= new Date().getYear();
+                    long ts = Long.parseLong(formatter.format(date));
+                    Put put = new Put(Bytes.toBytes(articleid_r));
 
-                 put.addColumn(colFamily, col, ts, Bytes.toBytes(article.toString()));
-                 try {
-                     context.write(new ImmutableBytesWritable(Bytes.toBytes(id)),  put);
-                 } catch (InterruptedException e) {
-                     e.printStackTrace();
-                 }
-             }
+                    put.addColumn(colFamily, col, ts, Bytes.toBytes(article.toString()));
+                    try {
+                        context.write(new ImmutableBytesWritable(Bytes.toBytes(id)), put);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-         //   System.out.println("VALUE:\n=================================");
-         //   System.out.println(value.toString());
-         //   TimeStamp ts=new TimeStamp(new Date());
+                //   System.out.println("VALUE:\n=================================");
+                //   System.out.println(value.toString());
+                //   TimeStamp ts=new TimeStamp(new Date());
          /*   long ts= new Date().getTime();
             Put put = new Put(Bytes.toBytes(ts));
 
@@ -72,6 +73,7 @@ public class HBaseBiorvixLoader {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }*/
+            }
         }
     }
 

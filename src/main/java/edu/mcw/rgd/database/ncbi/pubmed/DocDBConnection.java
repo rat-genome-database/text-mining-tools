@@ -62,7 +62,7 @@ public class DocDBConnection {
 	}
 /*	public static void connect() {
 		if (DBConn == null) {
-			ConnectionString ="jdbc:mysql://green.rgd.mcw.edu/pubmed" ;  // Connect to default database
+			ConnectionString ="jdbc:mysql://.rgd.mcw.edu/pubmed" ;  // Connect to default database
 			try {
 				Class.forName("com.mysql.cj.jdbc.Driver");
 			} catch (Exception e) {
