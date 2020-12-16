@@ -65,6 +65,7 @@ public class IndexBuilder {
 				DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
 				DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
 				DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
+				PubMedLibrary.HOST_NAME=conf.get("HOST_NAME");
 
 				if (!PubMedLibrary.indexArticle(result))
 				{
