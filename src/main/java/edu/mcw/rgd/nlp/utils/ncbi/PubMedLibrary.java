@@ -1369,6 +1369,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				} else if (annotation.annotation_set.equals("OrganismTagger")) {
 					String commonName = (String) annotation.features_table
 							.get("Species");
+					if(commonName!=null)
 					organism_common.add(commonName.trim().toLowerCase());
 					String organism_id = (String) annotation.features_table
 							.get("ncbiId");
