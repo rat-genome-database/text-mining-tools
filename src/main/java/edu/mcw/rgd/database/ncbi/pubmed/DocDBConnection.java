@@ -60,6 +60,34 @@ public class DocDBConnection {
 		}
 
 	}
+/*	public static void connect() {
+		if (DBConn == null) {
+			ConnectionString ="jdbc:mysql://.rgd.mcw.edu/pubmed" ;  // Connect to default database
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+
+			try {
+				DBConn = DriverManager.getConnection(
+						ConnectionString +
+								"?user=rattext&password=t3xt_mining_rgd2015r4t"
+								+ "&useUnicode=true&characterEncoding=UTF-8"
+				);
+				if (DBConn == null)  {
+					logger.error("Connection to DB can't be established!!!");
+				} else {
+					logger.info("Database connected!!!");
+					executeQuery("SET NAMES utf8");
+				}
+			} catch (SQLException ex) {
+				logger.error(ex.getMessage());
+				logger.error(ex.getSQLState());
+				logger.error(ex.getErrorCode());
+			}
+		}
+	}*/
 
 	public static void disconnect() {
 		if (DBConn == null) {

@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -320,7 +321,115 @@ public class ArticleDAO extends DAOBase {
 			return false;
 		}
 	}
+	public boolean getAgrArticleFromHResult(Result result) {
+		try {
+			String jsonStr = HBaseConnection.getField(result, "d", "x");
+			ObjectMapper mapper= new ObjectMapper();
+			Map article=mapper.readValue(jsonStr, Map.class);
+			if (jsonStr == null || jsonStr.length() == 0) return false;
 
+			this.pmid = Long.parseLong(getAgrArticleId(article));
+			this.articleTitle = (String) article.get("title");
+			this.articleAbstract = (String) article.get("abstract");
+			String dateStr = ((String) article.get("issueDate"));
+
+
+
+			Date jDate;
+			if (dateStr != null) {
+				dateStr = dateStr.replace("-","/");
+				try {
+					jDate = new Date(PUB_DATE_DF.parse(dateStr).getTime());
+				} catch (Exception e) {
+					System.err.println("Error in [" + pmid + "]");
+					System.err.println(dateStr);
+					System.err.println("Can't parse [" + dateStr + "] as a date. Using 1800/01/01.");
+					jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+				}
+			} else {
+				jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+			}
+			//	System.out.println("JDATE: "+ jDate);
+			this.articlePubDate = jDate;
+			this.publicationYear = jDate.getYear() + 1900;
+			this.articleAuthors = getAgrAuthors(article);
+			this.publicationTypes=getPublicationTypes(article);
+			this.meshTerms = getMeshTerms(article);
+			this.keywords = getKeywords(article);
+			return true;
+		} catch (Exception e) {
+
+			System.err.println("Error in [" + pmid + "]");
+			System.err.println("This is not a fatal error!");
+
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public static String getAgrArticleId(Map article)  {
+		String primaryId= (String)article.get("primaryId");
+		String articleId = primaryId.substring(primaryId.indexOf(":")+1,primaryId.length()-1);
+		return articleId;
+	}
+	public String getAgrAuthors(Map article){
+		ArrayList<Object> authors= (ArrayList<Object>) article.get("authors");
+		StringBuilder sb=new StringBuilder();
+		for(Object o:authors){
+			Map<String, String> map= (Map<String, String>) o;
+			sb.append(map.get("name")).append(";");
+
+		}
+		//	System.out.println(sb.toString());
+		return sb.toString();
+	}
+	public String[] getPublicationTypes(Map article) {
+		try {
+			List<String> ptlt = (List<String>)article.get("pubMedType");
+			String[] arr=new String[ptlt.size()];
+			for(int i=0;i<arr.length;i++)
+				arr[i]=ptlt.get(i);
+
+			return arr;
+		} catch (Exception e) {
+			//System.err.println("Error in getting Authors from PMID:" + pubMedArticle.getPubmedArticle().getMedlineCitation()
+			//				.getPMID().toString());
+			return null;
+		}
+	}
+	public String getKeywords(Map article) {
+		try {
+			StringBuilder keyword_str = new StringBuilder("");
+			List<String> keyword_lists = (List<String>)article.get("keywords");
+			for (String keyword : keyword_lists) {
+				if (keyword != null) {
+					keyword_str.append(keyword).append("; ");
+				}
+			}
+			return keyword_str.toString();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	public String getMeshTerms(Map article) {
+		try {
+			List<Map> terms = (List<Map>)article.get("meshTerms") ;
+			List<String> termsList = new ArrayList<>();
+			for(Map o:terms){
+				termsList.add(o.get("meshHeadingTerm").toString());
+			}
+			StringBuilder meshterm_str = new StringBuilder("");
+			if (termsList != null) {
+				for (String term: termsList) {
+					meshterm_str.append(term).append("; ");
+				}
+			}
+			return meshterm_str.toString();
+		} catch (Exception e) {
+			//System.err.println("Error in getting MeshTerms from PMID:" + pubMedArticle.getPubmedArticle().getMedlineCitation()
+			//					.getPMID().toString());
+			return null;
+		}
+	}
 	public static void main(String args[]) {
 		if (args.length == 0) {
 			System.out.println("Specify at lease one PMID as argument");

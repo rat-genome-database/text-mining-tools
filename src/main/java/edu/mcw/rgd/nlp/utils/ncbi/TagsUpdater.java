@@ -191,6 +191,11 @@ public class TagsUpdater {
 
 
         Configuration conf = HBaseConfiguration.create();
+        conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
+        conf.set("hbase.zookeeper.property.clientPort", "2181");
+        conf.set("hbase.client.retries.number", Integer.toString(1));
+        conf.set("zookeeper.session.timeout", Integer.toString(60000));
+        conf.set("zookeeper.recovery.retry", Integer.toString(0));
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if(otherArgs.length < 5) {
             System.err.println("At least 5 parameters: <table name> <path to gate> <use stemming> <column name> <annotation set> ...");

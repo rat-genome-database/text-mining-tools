@@ -74,6 +74,7 @@ public class DistributedAnnotator {
 	    //		  System.out.println("Collecting: " + annSet);
 	    		  annotationSets.add(annSet);
 	    	  }
+			  //setList.clear();
 		//	  System.out.println("ANNOTATION SETS: "+ annotationSets);
 	    	  colStr = conf.get("annotationColumn");
 	    	  if (colStr.equals(colStr.toUpperCase())) forcedTagging = true;
@@ -114,60 +115,65 @@ public class DistributedAnnotator {
 				if (docTS > 0 && annTS > 0) break;
 
 			}
+
 			if (hasArticle && (forcedTagging || annTS < docTS || annTag == null || !annTag.equals("Y"))) {
 				List<String> annotations = pml.mrAnnotateHResult(result, this.gateHome, useStemming);
 				String finalStr = "";
-				String pmid = pml.mrArticleDao.pmid.toString();
-				for (String ann : annotations) {
-					finalStr += ann + "|";
-				}
-			//	System.out.println("FINAL STRING: "+ finalStr);
-				Mutation dbComm = null;
 
-				if (finalStr.length() > 0) {
-					Put put = new Put(rowKey.get());
-					put.addColumn(colFamily, col, docTS, Bytes.toBytes(finalStr));
+					String pmid = pml.mrArticleDao.pmid.toString();
+					for (String ann : annotations) {
+						finalStr += ann + "|";
+					}
 
-					dbComm = put; //------------------------------------------
+					//annotations.clear();
+					//	System.out.println("FINAL STRING: "+ finalStr);
+					Mutation dbComm = null;
 
-				} else {
-					Delete delete = new Delete(rowKey.get());
-					delete.addColumn(colFamily, col);
-					dbComm = delete;  //------------------------------------------
-				}
-				try {
+					if (finalStr.length() > 0) {
+						Put put = new Put(rowKey.get());
+						put.addColumn(colFamily, col, docTS, Bytes.toBytes(finalStr));
 
-					if (dbComm instanceof Put) {
-//		            	  System.err.println("Adding annotations...");
-						((Put) dbComm).addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
-						context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
+						dbComm = put; //------------------------------------------
+
 					} else {
+						Delete delete = new Delete(rowKey.get());
+						delete.addColumn(colFamily, col);
+						dbComm = delete;  //------------------------------------------
+					}
+					try {
+
+						if (dbComm instanceof Put) {
+//		            	  System.err.println("Adding annotations...");
+							((Put) dbComm).addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
+							context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
+						} else {
 //		            	  System.err.println("Deleting annotations...");
-						context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
-						Put tagPut = new Put(rowKey.get());
-						tagPut.addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
+							context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
+							Put tagPut = new Put(rowKey.get());
+							tagPut.addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
 //				              context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);  //--------------------------------------
 
-						context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
+							context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
+						}
+					} catch (InterruptedException e) {
+						System.err.println("Error in saving to HBase:" + pmid);
+						e.printStackTrace();
 					}
-				} catch (InterruptedException e) {
-					System.err.println("Error in saving to HBase:" + pmid);
-					e.printStackTrace();
 				}
-			}
 
-			counter ++;
-			counter_inner ++;
-			if (counter_inner == 1000) {
-				//System.out.println(counter + " articles processed.");
-				counter_inner = 0;
-	//    		counter = 0;
+				counter++;
+				counter_inner++;
+				if (counter_inner == 1000) {
+					//System.out.println(counter + " articles processed.");
+					counter_inner = 0;
+					//    		counter = 0;
 
-			}
+				}
+
 		}
 	  }
 
-	  public static String gateHomePath = "tmp/gate/";
+	  public static String gateHomePath = "s3://emr-repository/tmp/gate/";
 	  public static Path hdfsGateAppPath ;
 
 	  public static Job configureJob(Configuration conf, String [] args) throws IOException {
@@ -175,14 +181,14 @@ public class DistributedAnnotator {
 		  Path localGateAppPath = new Path(path);
 		  gateHomePath = gateHomePath + "STRUCTURE_7.0.zip";*/
 
-		  Path localGateAppPath = new Path(args[1]);
+		 /* Path localGateAppPath = new Path(args[1]);
 		  gateHomePath = gateHomePath + localGateAppPath.getName();
-		  Path hdfsGateAppPath = new Path(gateHomePath);
-		  if (!args[1].equals("lastApp")) {
+		 */ Path hdfsGateAppPath = new Path(args[1]);//gateHomePath);
+		/*  if (!args[1].equals("lastApp")) {
 			  		FileSystem fs = FileSystem.get(conf);
 			  		fs.copyFromLocalFile(localGateAppPath, hdfsGateAppPath);
 		  }
-		  Scan sc=new Scan();
+		  */Scan sc=new Scan();
 		  conf.set(TableInputFormat.INPUT_TABLE, args[0]);
 		  conf.set(TableInputFormat.SCAN_COLUMN_FAMILY, "d");
 
@@ -213,6 +219,16 @@ public class DistributedAnnotator {
 
 	  public static void main(String[] args) throws Exception {
 		  Configuration conf = HBaseConfiguration.create();
+		  conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
+		 // conf.addResource(new Path("/usr/local/hbase/conf/hbase-site.xml"));
+		  conf.set("hbase.zookeeper.property.clientPort", "2181");
+		  conf.set("hbase.client.retries.number", Integer.toString(1));
+		  conf.set("zookeeper.session.timeout", Integer.toString(60000));
+		  conf.set("zookeeper.recovery.retry", Integer.toString(0));
+
+		 //conf.set("mapred.child.java.opts","-Xmx6144m -Xmx12288m -XX:+UseSerialGC -XX:-OmitStackTraceInFastThrow");
+		 // conf.set("mapred.job.map.memory.mb","12288");
+		 // conf.set("mapred.job.reduce.memory.mb","8192");
 		  String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 		  if(otherArgs.length < 5) {
 			  System.err.println("At least 5 parameters: <table name> <path to gate> <use stemming> <column name> <annotation set> ...");
@@ -221,14 +237,7 @@ public class DistributedAnnotator {
 		  Job job = configureJob(conf, otherArgs);
 		  System.exit(job.waitForCompletion(true) ? 0 : 1);
 
-		/*  Configuration config= HBaseConfiguration.create();
-		  Job job=configureJob(config, args);
 
-		  boolean b=job.waitForCompletion(true);
-		  if(!b){
-			  throw new IOException("error with job!");
-		  }
-*/
 		  }
 
 }

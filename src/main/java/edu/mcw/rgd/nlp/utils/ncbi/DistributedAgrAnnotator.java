@@ -6,25 +6,40 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.IdentityTableReducer;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
+
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+/*
+ *
+ * @author wliu
+ *
+ */
 
-public class DistributedPreprintAnnotator {
+
+public class DistributedAgrAnnotator {
+
     /**
      * Internal Mapper to be run by Hadoop.
      */
-    public static class Map extends TableMapper<ImmutableBytesWritable, Mutation> {
+    public static class Map extends TableMapper<ImmutableBytesWritable , Mutation>{
         // TableMapper<Text, Text> {
 
         protected PubMedLibrary pml;
@@ -50,16 +65,13 @@ public class DistributedPreprintAnnotator {
             Configuration conf = context.getConfiguration();
             annotationSets = new ArrayList<String>();
 
-            //  Path[] localCache = DistributedCache.getLocalCacheArchives(conf);
             Path[] localCache = context.getLocalCacheArchives();
             gateHome = localCache[0].toString();
-            System.out.println("local cache gate home: "+ gateHome);
             Collection<String> setList = conf.getStringCollection(PubMedLibrary.MR_ANN_SETS);
             for (String annSet : setList) {
-                System.out.println("Collecting: " + annSet);
                 annotationSets.add(annSet);
             }
-            System.out.println("ANNOTATION SETS: "+ annotationSets);
+
             colStr = conf.get("annotationColumn");
             if (colStr.equals(colStr.toUpperCase())) forcedTagging = true;
             col = Bytes.toBytes(colStr.toLowerCase());
@@ -75,7 +87,7 @@ public class DistributedPreprintAnnotator {
                 throws IOException, InterruptedException {
 
             if (counter == 0) {
-                System.out.println("COUNTER is ZERO: ");
+                //	System.out.println("COUNTER is ZERO: ");
                 pml = new PubMedLibrary();
                 pml.setAnnotationSets(annotationSets);
                 pml.resetAnnotator(gateHome, useStemming);
@@ -99,14 +111,16 @@ public class DistributedPreprintAnnotator {
                 if (docTS > 0 && annTS > 0) break;
 
             }
-    //      if (hasArticle && (forcedTagging || annTS < docTS || annTag == null || !annTag.equals("Y"))) {
-                List<String> annotations = pml.mrAnnotatePrePrintHResult(result, this.gateHome, useStemming);
+
+            if (hasArticle && (forcedTagging || annTS < docTS || annTag == null || !annTag.equals("Y"))) {
+                List<String> annotations = pml.mrAnnotateAgrHResult(result, this.gateHome, useStemming);
                 String finalStr = "";
-                String pmid = pml.mrArticleDao.pmid.toString();
+
+                //String pmid = pml.mrArticleDao.pmid.toString();
                 for (String ann : annotations) {
                     finalStr += ann + "|";
                 }
-                System.out.println("FINAL STRING: "+ finalStr);
+
                 Mutation dbComm = null;
 
                 if (finalStr.length() > 0) {
@@ -123,66 +137,53 @@ public class DistributedPreprintAnnotator {
                 try {
 
                     if (dbComm instanceof Put) {
-//		            	  System.err.println("Adding annotations...");
                         ((Put) dbComm).addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
                         context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
                     } else {
-//		            	  System.err.println("Deleting annotations...");
                         context.write(new ImmutableBytesWritable(rowKey.get()), dbComm);
                         Put tagPut = new Put(rowKey.get());
                         tagPut.addColumn(docColFamily, col, docTS, Bytes.toBytes("Y"));
-//				              context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);  //--------------------------------------
-
-                        context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
+                       context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
                     }
                 } catch (InterruptedException e) {
-                    System.err.println("Error in saving to HBase:" + pmid);
+                    //System.err.println("Error in saving to HBase:" + pmid);
                     e.printStackTrace();
                 }
-        //   }
+            }
 
-            counter ++;
-            counter_inner ++;
+            counter++;
+            counter_inner++;
             if (counter_inner == 1000) {
-                System.out.println(counter + " articles processed.");
+                //System.out.println(counter + " articles processed.");
                 counter_inner = 0;
                 //    		counter = 0;
 
             }
+
         }
     }
 
-    public static String gateHomePath = "tmp/gate/";
+    public static String gateHomePath = "s3://emr-repository/tmp/gate/";
+    public static Path hdfsGateAppPath ;
 
     public static Job configureJob(Configuration conf, String [] args) throws IOException {
-        Path hdfsGateAppPath = new Path(args[1]);
-        /*Path localGateAppPath = new Path(args[1]);
-        gateHomePath = gateHomePath + localGateAppPath.getName();
-        Path hdfsGateAppPath = new Path(gateHomePath);
-        if (!args[1].equals("lastApp")) {
-            FileSystem fs = FileSystem.get(conf);
-            fs.copyFromLocalFile(localGateAppPath, hdfsGateAppPath);
-        }
-
-        */
-        Scan sc=new Scan();
+		 Path hdfsGateAppPath = new Path(args[1]);//gateHomePath);
+		Scan sc=new Scan();
         conf.set(TableInputFormat.INPUT_TABLE, args[0]);
         conf.set(TableInputFormat.SCAN_COLUMN_FAMILY, "d");
 
-        String scanConvertedString= TableMapReduceUtil.convertScanToString(sc);
+        String scanConvertedString=TableMapReduceUtil.convertScanToString(sc);
         conf.set(TableInputFormat.SCAN, scanConvertedString );
+
 
         conf.set("annotation_useStemming", args[2]);
         conf.set("annotationColumn", args[3]);
         String annotationSets = args[4];
-	for (int i = 5; i < args.length; i++) {
-			    	annotationSets += "," + args[i];
-			    }
 
         conf.setStrings(PubMedLibrary.MR_ANN_SETS, annotationSets);
         Job job = new Job(conf, "Annotator using " + args[1]);
-        job.setJarByClass(DistributedPreprintAnnotator.class);
-        job.setMapperClass(DistributedPreprintAnnotator.Map.class);
+        job.setJarByClass(DistributedAnnotator.class);
+        job.setMapperClass(Map.class);
         job.setNumReduceTasks(0);
         job.setInputFormatClass(TableInputFormat.class);
         job.addCacheArchive(hdfsGateAppPath.toUri());
@@ -200,6 +201,7 @@ public class DistributedPreprintAnnotator {
         conf.set("hbase.client.retries.number", Integer.toString(1));
         conf.set("zookeeper.session.timeout", Integer.toString(60000));
         conf.set("zookeeper.recovery.retry", Integer.toString(0));
+
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if(otherArgs.length < 5) {
             System.err.println("At least 5 parameters: <table name> <path to gate> <use stemming> <column name> <annotation set> ...");
@@ -207,6 +209,7 @@ public class DistributedPreprintAnnotator {
         }
         Job job = configureJob(conf, otherArgs);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
+
 
     }
 

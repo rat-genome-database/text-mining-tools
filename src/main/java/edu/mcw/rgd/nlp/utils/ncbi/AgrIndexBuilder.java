@@ -1,7 +1,5 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
-import edu.mcw.rgd.common.utils.DataSourceFactory;
 import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -24,39 +22,31 @@ import org.json.JSONObject;
 import java.io.*;
 import java.util.*;
 
-public class PreprintIndexBuilder {
+public class AgrIndexBuilder {
     public static class Map extends
             Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Mutation> {
         HashMap<String,List<String>> data = new HashMap<>();
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             Configuration conf=context.getConfiguration();
-           /* DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
-            DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
-            DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
-            PubMedLibrary.HOST_NAME=conf.get("HOST_NAME");
-           */
             ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
             aoc.LoadFromHDFS(context);
         }
         @Override
         protected void cleanup(Context context) throws IOException{
-            String pathString = "s3://emr-repository/preprint-output/";
+            String pathString = "s3://emr-repository/agr-output/";
 
-            FileSystem fs = FileSystem.get(java.net.URI.create("s3://emr-repository/preprint-output/"), context.getConfiguration());
+            FileSystem fs = FileSystem.get(java.net.URI.create("s3://emr-repository/agr-output/"), context.getConfiguration());
             //FSDataOutputStream output ;
 
             Path path = new Path(pathString+context.getTaskAttemptID()+".json");
             if(PubMedLibrary.jsonObjects.size() != 0) {
-                //output = fs.create(path);
                 BufferedWriter output = new BufferedWriter
                         (new OutputStreamWriter(fs.create(path)));
                 for (JSONObject j : PubMedLibrary.jsonObjects) {
-                    //ClientUtils.writeXML(j,output);
                     output.write(j.toString());
                     output.write("\n");
                 }
-                //out.writeBytes(solr_doc.getFieldValue("pmid")+","+solr_doc.getFieldValue("title") + "\n");
                 output.close();
                 fs.close();
                 PubMedLibrary.jsonObjects.clear();
@@ -68,9 +58,6 @@ public class PreprintIndexBuilder {
                 throws IOException, InterruptedException {
             try {
                 Configuration conf=context.getConfiguration();
-                //DataSourceFactory.MYSQL_DB_URL=conf.get("MYSQL_DB_URL");
-                //DataSourceFactory.MYSQL_DB_USERNAME=conf.get("MYSQL_DB_USERNAME");
-                //DataSourceFactory.MYSQL_DB_PASSWORD=conf.get("MYSQL_DB_PASSWORD");
                 if(data.size() == 0){
                     Path[] localCache = context.getLocalCacheArchives();
                     BufferedReader br = new BufferedReader(new FileReader(localCache[0].toString()));
@@ -89,7 +76,7 @@ public class PreprintIndexBuilder {
                     br.close();
 
                 }
-                if (!PubMedLibrary.indexPreprintArticle(result,data))
+                if (!PubMedLibrary.indexAgrArticle(result,data))
                 {
                     System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
 
@@ -98,13 +85,13 @@ public class PreprintIndexBuilder {
                     Delete delete = new Delete(rowKey.get());
                     byte[] valueN = Bytes.toBytes("N");
                     try {
-                        NavigableMap<byte[], byte[]> values = result.getFamilyMap(DistributedAnnotator.Map.docColFamily);
+                        NavigableMap<byte[], byte[]> values = result.getFamilyMap(DistributedAgrAnnotator.Map.docColFamily);
                         java.util.Map.Entry<byte[], byte[]> curEntry = values.firstEntry();
                         while (curEntry != null) {
                             byte[] key = (byte[]) curEntry.getKey();
                             String keyStr = Bytes.toString(key);
                             if (!keyStr.equals("x")) {
-                                delete.addColumn(DistributedAnnotator.Map.docColFamily, key);
+                                delete.addColumn(DistributedAgrAnnotator.Map.docColFamily, key);
                             }
                             curEntry = values.higherEntry(key);
 
@@ -144,8 +131,8 @@ public class PreprintIndexBuilder {
         Path filePath = new Path("s3://emr-repository/terms.csv");
         Job job = new Job(conf, "Indexing HBase Preprint :" + tableName + " to Solr");
 
-        job.setJarByClass(PreprintIndexBuilder.class);
-        job.setMapperClass(PreprintIndexBuilder.Map.class);
+        job.setJarByClass(AgrIndexBuilder.class);
+        job.setMapperClass(AgrIndexBuilder.Map.class);
         job.setNumReduceTasks(10);
         job.setInputFormatClass(TableInputFormat.class);
         job.addCacheArchive(filePath.toUri());

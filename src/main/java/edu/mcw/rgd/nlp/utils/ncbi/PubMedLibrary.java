@@ -3,9 +3,7 @@
  */
 package edu.mcw.rgd.nlp.utils.ncbi;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -13,18 +11,25 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest.ACTION;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
+import org.json.JSONObject;
 import org.tartarus.snowball.Stemmer;
 
 import com.jcraft.jsch.Logger;
@@ -57,10 +62,11 @@ import gate.Document;
  */
 public class PubMedLibrary extends LibraryBase implements Library {
 
-	public static String HOST_NAME;
-	public static HttpSolrServer[] solrServers = null;
-	public static Random solrServerIdGenerator = new Random();
 
+	public static String HOST_NAME;
+	public static HttpSolrClient[] solrServers = null;
+	public static Random solrServerIdGenerator = new Random();
+	public static SolrClient solrServer = null ;
 	protected static int RETRY_LIMIT = 3;
 	protected FileList fileList = new FileList();
 	protected FileList failedList = new FileList();
@@ -75,6 +81,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	protected List<String> annSets;
 	public static Job mrJob;
 
+    public static List<JSONObject> jsonObjects = new ArrayList<>();
 	public static String MR_ANN_SETS = "mapred.input.annotation.sets";
 	//	protected static ArticleDAO mrDao;
 	protected static AnnieAnnotator mrAnnoator;
@@ -87,11 +94,12 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	 */
 	public PubMedLibrary() {
 		// TODO Auto-generated constructor stub
+
 	}
 
 
 	protected static void initSolrServers() throws UnknownHostException {
-		solrServers = new HttpSolrServer[20];
+		solrServers = new HttpSolrClient[20];
 		/*InetAddress host=InetAddress.getLocalHost();
 		System.out.println("HOST NAME: " + host.getHostName());*/
 		System.out.println("Initializing solr servers....");
@@ -101,7 +109,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		for(int solrServerId=0;solrServerId<20;solrServerId++){
 			String solrServerString=HOST_NAME+":"+(basePort+solrServerId) +"/solr/";
 			try {
-				solrServers[solrServerId] = new HttpSolrServer(solrServerString);
+				solrServers[solrServerId] = new HttpSolrClient.Builder(solrServerString).build();
 			} catch (Exception e) {
 			return;
 		}
@@ -889,6 +897,52 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		System.out.println("ANNOTATIONS SIZE: "+ annResult.size());
 		return annResult;
 	}
+	public List<String> annotateFromAgrHResult(AnnieAnnotator annotator,
+													List<String> annotation_sets, Result result, ArticleDAO dao) {
+		List<String> annResult = new ArrayList<String>();
+		try {
+			if (dao.getAgrArticleFromHResult(result)) {
+				// Annotate title
+				if (dao.articleTitle != null && dao.articleTitle.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE TITLE");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleTitle, 0,
+							annotation_sets, annotator.isUseStemming()));
+				}
+				// Annotate abstract
+				if (dao.articleAbstract != null
+						&& dao.articleAbstract.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE ABSTRACT");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.articleAbstract, 1,
+							annotation_sets, annotator.isUseStemming()));
+				}
+				// Annotate MeSH terms
+				if (dao.meshTerms != null && dao.meshTerms.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE MESH");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.meshTerms, 2,
+							annotation_sets, annotator.isUseStemming()));
+				}
+
+				// Annotate Keywords
+				if (dao.keywords != null && dao.keywords.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE KEYWORDS");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.keywords, 3,
+							annotation_sets, annotator.isUseStemming()));
+				}
+
+				// Annotate Keywords
+				if (dao.chemicals != null && dao.chemicals.length() > 0) {
+					System.out.println("ANNOTATING ARTILCE CHEMICALS");
+					annResult.addAll(annotateToString(annotator, dao.pmid, dao.chemicals, 4,
+							annotation_sets, annotator.isUseStemming()));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error in [" + dao.pmid + "]", e);
+			return annResult;
+		}
+		System.out.println("ANNOTATIONS SIZE: "+ annResult.size());
+		return annResult;
+	}
 	public List<String> annotateFromHResult(AnnieAnnotator annotator,
 			List<String> annotation_sets, Result result, ArticleDAO dao) {
 		List<String> annResult = new ArrayList<String>();
@@ -1160,6 +1214,13 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		}
 		return annotateFromPrePrintHResult(PubMedLibrary.mrAnnoator, annSets, result, mrArticleDao);
 	}
+	public List<String> mrAnnotateAgrHResult(Result result, String gateHome, boolean useStemming) {
+		if (PubMedLibrary.mrAnnoator == null) {
+			System.out.println("MR ANNOTATOR is null");
+			PubMedLibrary.mrAnnoator = getAnnotator(gateHome, false, useStemming);
+		}
+		return annotateFromAgrHResult(PubMedLibrary.mrAnnoator, annSets, result, mrArticleDao);
+	}
 	public static void mrAnnotateToFile(Job job, String[] args) {
 		if (args.length < 4) {
 			System.out
@@ -1211,7 +1272,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 	// private static void addMaptoDoc(XmlDoc solr_doc, SortedCountMap map,
 	// String key_field, String value_field, String count_field) {
-	private static void addMaptoDoc(SolrInputDocument solr_doc,
+	public static void addMaptoDoc(SolrInputDocument solr_doc,
 			SortedCountMap map, String key_field, String value_field,
 			String count_field, String pos_field) {
 
@@ -1248,7 +1309,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	}
 
 
-	public static Boolean indexArticle(Result result) throws Exception {
+	public static Boolean indexArticle(Result result,HashMap<String,List<String>> data) throws Exception {
 		ArticleDAO art = new ArticleDAO();
 		Boolean indexable = true;
 
@@ -1368,7 +1429,8 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				} else if (annotation.annotation_set.equals("OrganismTagger")) {
 					String commonName = (String) annotation.features_table
 							.get("Species");
-					organism_common.add(commonName.trim().toLowerCase());
+					if(commonName != null && !commonName.equals(""))
+						organism_common.add(commonName.trim().toLowerCase());
 					String organism_id = (String) annotation.features_table
 							.get("ncbiId");
 					organism_map.add(organism_id, ArticleOrganismClassifier
@@ -1419,7 +1481,8 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 			for (String onto_name : Ontology.getRgdOntologies()) {
 				SortedCountMap onto_map = onto_maps.get(onto_name);
-				onto_map.sort(true);
+
+				onto_map.sort(true,data);
 				if (onto_name.equals("MT") && links != null) {
 					for (String linkId : links) {
 						onto_map.appendVirtualEntry("rs"+linkId);
@@ -1433,12 +1496,13 @@ public class PubMedLibrary extends LibraryBase implements Library {
 						solr_entry.getPosFieldName());
 			}
 
+
 			try {
 				// Using simple post
 				// Server server = new Server(solrServer);
 
 
-				if (solrServers == null) initSolrServers();
+			//	if (solrServers == null) initSolrServers();
 
 				// Used to use the last digit of PMID to decide which Solr server to process the request.
 				// After HBase changed to use reversed PMID as keys for balancing reasons, one MR task usually
@@ -1449,10 +1513,13 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				// Change to pick Solr server with a random number. This also allows to use an arbitrary
 				// number of Solr cores.
 
-				int serverId = solrServerIdGenerator.nextInt(solrServers.length);
+//				int serverId = solrServerIdGenerator.nextInt(solrServers.length);
 
-				SolrServer server = solrServers[serverId];
+//				SolrClient server = solrServers[serverId];
+	/*			SolrClient server = new HttpSolrClient.Builder(address).build();
+
 				UpdateRequest req = new UpdateRequest();
+				req.setAction( UpdateRequest.ACTION.COMMIT, false, false);
 				req.add(solr_doc);
 				if(server!=null){
 
@@ -1460,6 +1527,19 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 
 				}
+*/
+
+                JSONObject obj = new JSONObject(); // new JSONObject(doc);
+                // we have to take apart the document
+                Iterator<SolrInputField>itr = solr_doc.iterator();
+                String key;
+                SolrInputField field;
+                while (itr.hasNext()) {
+                    field = itr.next();
+                    key = field.getName();
+                    obj.put(key, solr_doc.getFieldValues(key));
+                }
+                jsonObjects.add(obj);
 
 				return true;
 
@@ -1473,7 +1553,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		return true;
 	}
-	public static Boolean indexPreprintArticle(Result result) throws Exception {
+	public static Boolean indexPreprintArticle(Result result,HashMap<String,List<String>> data) throws Exception {
 		ArticleDAO art = new ArticleDAO();
 		Boolean indexable = true;
 
@@ -1587,6 +1667,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				} else if (annotation.annotation_set.equals("Ontologies")) {
 					String onto_name = (String) annotation.features_table
 							.get("minorType");
+					if(onto_maps.get(onto_name)!=null)
 					onto_maps.get(onto_name).add(
 							annotation.features_table.get("ONTO_ID"), ann_text, ann_pos);
 				} else if (annotation.annotation_set.equals("Mutations")) {
@@ -1626,7 +1707,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 			for (String onto_name : Ontology.getRgdOntologies()) {
 				SortedCountMap onto_map = onto_maps.get(onto_name);
-				onto_map.sort(true);
+				onto_map.sort(true,data);
 				if (onto_name.equals("MT") && links != null) {
 					for (String linkId : links) {
 						onto_map.appendVirtualEntry("rs"+linkId);
@@ -1645,7 +1726,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				// Server server = new Server(solrServer);
 
 
-				if (solrServers == null) initSolrServers();
+/*				if (solrServers == null) initSolrServers();
 
 				// Used to use the last digit of PMID to decide which Solr server to process the request.
 				// After HBase changed to use reversed PMID as keys for balancing reasons, one MR task usually
@@ -1660,7 +1741,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 
 
-				SolrServer server = solrServers[serverId];
+				SolrClient server = solrServers[serverId];
 
 				UpdateRequest req = new UpdateRequest();
 				req.add(solr_doc);
@@ -1672,6 +1753,18 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 
 				}
+*/
+				JSONObject obj = new JSONObject(); // new JSONObject(doc);
+				// we have to take apart the document
+				Iterator<SolrInputField>itr = solr_doc.iterator();
+				String key;
+				SolrInputField field;
+				while (itr.hasNext()) {
+					field = itr.next();
+					key = field.getName();
+					obj.put(key, solr_doc.getFieldValues(key));
+				}
+				jsonObjects.add(obj);
 
 				return true;
 
@@ -1685,11 +1778,204 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		return true;
 	}
+	public static Boolean indexAgrArticle(Result result,HashMap<String,List<String>> data) throws Exception {
+		ArticleDAO art = new ArticleDAO();
+		Boolean indexable = true;
 
+		if (art.getAgrArticleFromHResult(result)) {
+
+			List<AnnotationRecord> annotations = AnnotationDAO
+					.getAnnotationsFromResult(result);
+			List<String> links = AnnotationDAO.getLinksFromResult(result);
+			String pmidStr = Long.toString(art.pmid);
+			PubMedSolrDoc solr_doc = new PubMedSolrDoc();
+
+			solr_doc.addField("pmid", pmidStr);
+			solr_doc.addField("title", art.articleTitle);
+			solr_doc.addField("abstract", art.articleAbstract);
+			solr_doc.addField("p_date", art.articlePubDate);
+			solr_doc.addField("authors", art.articleAuthors);
+			solr_doc.addField("mesh_terms", art.meshTerms);
+			solr_doc.addField("keywords", art.keywords);
+			solr_doc.addField("p_year", art.publicationYear);
+			if (art.pmcId != null) solr_doc.addField("pmc_id_s", art.pmcId);
+			if (art.doi != null) solr_doc.addField("doi_s", art.doi);
+
+//			logger.info("1.1  In indexArticle=> pmid=\t"+pmidStr+"\t"+art.pmid);
+
+
+			if (art.publicationTypes != null) {
+				for (String pt : art.publicationTypes) {
+					solr_doc.addField("p_type", pt);
+				}
+			}
+//			logger.info("1.2  In indexArticle=> pmid=\t"+pmidStr+"\t"+art.pmid);
+
+			SortedCountMap gene_map = new SortedCountMap();
+			SortedCountMap rgd_gene_map = new SortedCountMap();
+			SortedCountMap organism_map = new SortedCountMap();
+			HashMap<String, SortedCountMap> onto_maps = new HashMap<String, SortedCountMap>();
+			Set<String> organism_common=new HashSet<>();
+			for (String onto_name : Ontology.getRgdOntologies()) {
+				onto_maps.put(onto_name, new SortedCountMap());
+			}
+//			logger.info("1.3  In indexArticle=> pmid=\t"+pmidStr+"\t"+art.pmid);
+
+			for (AnnotationRecord annotation : annotations) {
+				String ann_section = "";
+				switch (annotation.text_location) {
+					case 0:
+						ann_section = art.articleTitle;
+						break;
+					case 1:
+						ann_section = art.articleAbstract;
+						break;
+					case 2:
+						ann_section = art.meshTerms;
+						break;
+					case 3:
+						ann_section = art.keywords;
+						break;
+				}
+				String ann_text, ann_pos;
+
+				ann_pos = String.format("%d;%d-%d", annotation.text_location,
+						annotation.text_start,
+						annotation.text_end);
+
+
+				if (annotation.annotation_set == null)
+					annotation.annotation_set = "Nulllll";
+
+				if (!annotation.annotation_set.equals("OrganismTagger")) {
+					try {
+						ann_text = ann_section.substring(annotation.text_start,
+								annotation.text_end);
+
+					} catch (Exception e) {
+						System.err.println("Error getting text: [" + pmidStr + ":" + annotation.annotation_set
+								+ "] " + annotation.text_location + ":" + annotation.text_start + ", " + annotation.text_end + " from ["
+								+ ann_section + "]");
+						ann_text = "";
+						indexable = false;
+						break;
+					}
+				} else {
+					ann_text = "";
+				}
+
+				// Simply put annotations together and index them.
+				// Assuming they are independent to each other
+				// Complex algorithms can be used later.
+				if (annotation.annotation_set.equals("GENES") && !annotation.features_table.get("type").equals("CellLine")
+						&& !annotation.features_table.get("type").equals("CellType")
+						&& !annotation.features_table.get("type").equals("RNA")) {
+					gene_map.add(ann_text, "", ann_pos);
+					// solr_doc.add("gene", ann_text);
+				} else if (annotation.annotation_set.equals("RGDGENE")) {
+					rgd_gene_map.add(annotation.features_table.get("RGD_ID"),
+							ann_text, ann_pos);
+				} else if (annotation.annotation_set.equals("OrganismTagger")) {
+					String commonName = (String) annotation.features_table
+							.get("Species");
+					if (commonName != null && !commonName.equals(""))
+						organism_common.add(commonName.trim().toLowerCase());
+					String organism_id = (String) annotation.features_table
+							.get("ncbiId");
+					organism_map.add(organism_id, ArticleOrganismClassifier
+							.getNameByID(Long.parseLong(organism_id)), ann_pos);
+				} else if (annotation.annotation_set.equals("Ontologies")) {
+					String onto_name = (String) annotation.features_table
+							.get("minorType");
+					if(onto_maps.get(onto_name) == null)
+						onto_maps.put(onto_name, new SortedCountMap());
+
+					onto_maps.get(onto_name).add(
+								annotation.features_table.get("ONTO_ID"), ann_text, ann_pos);
+
+				} else if (annotation.annotation_set.equals("Mutations")) {
+					onto_maps.get("MT").add((String) annotation.features_table
+							.get("wNm"), ann_text, ann_pos);
+				} else if (annotation.annotation_set.equals("SNP")) {
+					String snpStr = (String) annotation.features_table
+							.get("string");
+					try {
+						onto_maps.get("MT").add(snpStr.replaceAll("\\s", ""), ann_text, ann_pos);
+					} catch (Exception e) {
+						System.err.println("Error in getting SNP annotations of " + pmidStr);
+						e.printStackTrace();
+						throw e;
+					}
+				}
+			}
+			if (!indexable){
+
+				return false;
+			}
+
+			gene_map.sort();
+			addMaptoDoc(solr_doc, gene_map, "gene", null, "gene_count", "gene_pos");
+
+			rgd_gene_map.sort();
+			addMaptoDoc(solr_doc, rgd_gene_map, "rgd_obj_id", "rgd_obj_term",
+					"rgd_obj_count", "rgd_obj_pos");
+
+			organism_map.sort();
+			addMaptoDoc(solr_doc, organism_map, "organism_ncbi_id",
+					"organism_term", "organism_count", "organism_pos");
+			for(String name: organism_common){
+				System.out.println("COMMON NAME: "+ name);
+				solr_doc.addField("organism_common_name",name );
+			}
+
+			for (String onto_name : Ontology.getRgdOntologies()) {
+				SortedCountMap onto_map = onto_maps.get(onto_name);
+
+				onto_map.sort(true,data);
+				if (onto_name.equals("MT") && links != null) {
+					for (String linkId : links) {
+						onto_map.appendVirtualEntry("rs"+linkId);
+					}
+				}
+				SolrOntologyEntry solr_entry = Ontology.getSolrOntoFields()
+						.get(onto_name);
+				addMaptoDoc(solr_doc, onto_map, solr_entry.getIdFieldName(),
+						solr_entry.getTermFieldName(),
+						solr_entry.getCountFieldName(),
+						solr_entry.getPosFieldName());
+			}
+
+
+			try {
+
+				JSONObject obj = new JSONObject(); // new JSONObject(doc);
+				// we have to take apart the document
+				Iterator<SolrInputField>itr = solr_doc.iterator();
+				String key;
+				SolrInputField field;
+				while (itr.hasNext()) {
+					field = itr.next();
+					key = field.getName();
+					obj.put(key, solr_doc.getFieldValues(key));
+				}
+				jsonObjects.add(obj);
+
+				return true;
+
+			} catch (Exception e) {
+
+				System.err.println("Error when indexing:" + pmidStr);
+				e.printStackTrace();
+				return true;
+			}
+		}
+
+		return true;
+	}
 	public static void indexArticle(long pmid) throws Exception {
 		logger.info("[pmid:" + Long.toString(pmid) + "] Indexing to Solr...");
 		ArticleDAO art = new ArticleDAO();
-		// ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
+		ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
 		if (art.getArticleFromCouch(Long.toString(pmid))) {
 			List<AnnotationRecord> annotations = AnnotationDAO
 					.getAllAnnotations(pmid);
@@ -1796,8 +2082,10 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 				// Using SolrJ
 			//	SolrServer server = new HttpSolrServer(solrServer);
-				InetAddress host=InetAddress.getLocalHost();
-				SolrServer server = new HttpSolrServer("http://"+host.getHostName()+":8080/solr");
+				//InetAddress host=InetAddress.getLocalHost();
+
+				if(solrServer == null)
+					solrServer = new HttpSolrClient.Builder("http://localhost:8983/solr/rgdpub").build();
 
 				logger.info("[pmid:" + Long.toString(art.pmid)
 						+ "] Solr doc string: " + solr_doc.toString());
@@ -1809,7 +2097,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				UpdateRequest req = new UpdateRequest();
 				req.setAction(ACTION.COMMIT, false, false);
 				req.add(solr_doc);
-				UpdateResponse rsp = req.process(server);
+				UpdateResponse rsp = req.process(solrServer);
 				req.clear();
 				solr_doc.clear();
 				logger.info("[pmid:" + Long.toString(art.pmid)
@@ -1840,7 +2128,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 				initSolrServers();
 			}
 		//	System.out.println("SOLR SERVERS LENGTH: "+ solrServers.length);
-			for(HttpSolrServer s:solrServers){
+			for(HttpSolrClient s:solrServers){
 				System.out.println(s.getBaseURL());
 			}
 			int serverId = solrServerIdGenerator.nextInt(solrServers.length);

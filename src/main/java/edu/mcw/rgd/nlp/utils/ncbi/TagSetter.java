@@ -99,7 +99,12 @@ public class TagSetter {
 	    }  
 	  
 	  public static void main(String[] args) throws Exception {
-		    Configuration conf = HBaseConfiguration.create();
+		  Configuration conf = HBaseConfiguration.create();
+		  conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
+		  conf.set("hbase.zookeeper.property.clientPort", "2181");
+		  conf.set("hbase.client.retries.number", Integer.toString(1));
+		  conf.set("zookeeper.session.timeout", Integer.toString(60000));
+		  conf.set("zookeeper.recovery.retry", Integer.toString(0));
 		    String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 		    if(otherArgs.length != 3) {
 		      System.err.println("Need three parameters: <table name> <column name> <value>");

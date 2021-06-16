@@ -8,11 +8,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 
-import org.apache.hadoop.hbase.client.Mutation;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+import org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy;
+import org.apache.hadoop.hbase.regionserver.KeyPrefixRegionSplitPolicy;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Writables;
 import org.apache.hadoop.io.Text;
@@ -91,17 +93,55 @@ public class HBaseLoader {
   
 
   public static void main(String[] args) throws Exception {
-    Configuration conf = HBaseConfiguration.create();
-    
-  //  conf.set("hbase.zookeeper.quorum", "gray03");
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure");
-    
+	  Configuration conf = HBaseConfiguration.create();
+	  conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
+	 // conf.set("hbase.zookeeper.property.clientPort", "2181");
+	  conf.set("hbase.client.retries.number", Integer.toString(1));
+	  conf.set("zookeeper.session.timeout", Integer.toString(60000));
+	  conf.set("zookeeper.recovery.retry", Integer.toString(0));
+
+	 /* conf.set("hbase.hregion.max.filesize","10737418240");
+	  conf.set("hbase.hregion.memstore.block.multiplier",Integer.toString(4));
+	  conf.set("hbase.hregion.memstore.flush.size",Integer.toString(134217728));
+	  conf.set("hbase.hstore.blockingStoreFiles", Integer.toString(10));
+*/
+	  Connection connection = ConnectionFactory.createConnection(conf);
+	  Admin hba = connection.getAdmin();
+
+
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
     if (otherArgs.length != 2) {
       System.err.println("Usage: HBaseLoader <path> <table name>");
       System.exit(2);
     }
-    
+	  if (!hba.tableExists(TableName.valueOf(otherArgs[1]))) {
+
+		  TableDescriptorBuilder  ht = TableDescriptorBuilder.newBuilder(TableName.valueOf(otherArgs[1]));
+		  ht.setRegionSplitPolicyClassName(ConstantSizeRegionSplitPolicy.class.getName());
+
+		  ColumnFamilyDescriptor columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
+				  .newBuilder(Bytes.toBytes("d")).build();
+		  ht.setColumnFamily(columnFamilyDescriptor);
+		  columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
+				  .newBuilder(Bytes.toBytes("a")).build();
+		  ht.setColumnFamily(columnFamilyDescriptor);
+		  columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
+				  .newBuilder(Bytes.toBytes("c")).build();
+		  ht.setColumnFamily(columnFamilyDescriptor);
+		  columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
+				  .newBuilder(Bytes.toBytes("l")).build();
+		  ht.setColumnFamily(columnFamilyDescriptor);
+		  columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
+				  .newBuilder(Bytes.toBytes("s")).build();
+		  ht.setColumnFamily(columnFamilyDescriptor);
+
+		   hba.createTable(ht.build());
+
+		  System.out.println("New Table Created :"+ hba.tableExists(TableName.valueOf(otherArgs[1])));
+	  } else {
+		  System.out.println("Table Exists :");
+	  }
+
     Job job = new Job(conf, "Import PubMed XML to HBase:" + otherArgs[1] + " from " + otherArgs[0]);
     job.setJarByClass(XMLProcessor.class);
     job.setMapperClass(XMLMapper.class);

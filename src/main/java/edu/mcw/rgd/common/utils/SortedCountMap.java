@@ -11,9 +11,13 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.jar.Attributes;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.stat.Frequency;
 
 import edu.mcw.rgd.database.ncbi.pubmed.OntTermConnectionsDAO;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 public class SortedCountMap {
 	private HashMap<Object, Object> _unsortedMap;
@@ -37,6 +41,8 @@ public class SortedCountMap {
 	private List<Long> _sortedCounts;
 	private List<Object> _sortedKeys;
 	private Frequency _keyFrquency;
+
+
 	
 	public SortedCountMap() {
 		init();
@@ -49,6 +55,8 @@ public class SortedCountMap {
 		_sortedCounts = new ArrayList<Long>();
 		_sortedKeys = new ArrayList<Object>();
 		_keyFrquency = new Frequency();
+
+
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -85,11 +93,14 @@ public class SortedCountMap {
 			long cur_freq = _keyFrquency.getCount((String)cur_key);
 			if (removeParents) {
 				boolean keyIsValid = true;
+				HashMap<String,List<String>> data = OntTermConnectionsDAO.getTerms((String)cur_key);
 				for (Object obj : validKeys) {
-					if (OntTermConnectionsDAO.isParent((String) obj, (String)cur_key)) {
+					//if (OntTermConnectionsDAO.isParent((String) obj, (String)cur_key)) {
+					if(data != null && data.get("childTerms").contains((String)obj)) {
 						keyIsValid = false;
 						break;
-					} else if (OntTermConnectionsDAO.isParent((String)cur_key,(String) obj)) {
+						//	} else if (OntTermConnectionsDAO.isParent((String)cur_key,(String) obj)) {
+					}else if(data != null && data.get("parentTerms").contains((String)obj)){
 						invalidKeys.add(obj);
 					}
 				}
@@ -122,7 +133,55 @@ public class SortedCountMap {
 		}
 		
 	}
-	
+	public void sort(boolean removeParents,HashMap<String,List<String>> data) throws Exception {
+		// Generate key counts
+		Iterator<Comparable<?>> it = _keyFrquency.valuesIterator();
+
+		List<Object> validKeys = new ArrayList<Object>();
+		List<Object> invalidKeys = new ArrayList<Object>();
+		while (it.hasNext()) {
+			invalidKeys.clear();
+			Object cur_key = it.next();
+			long cur_freq = _keyFrquency.getCount((String)cur_key);
+			if (removeParents) {
+				boolean keyIsValid = true;
+				for (Object obj : validKeys) {
+					if (data.get((String) obj) != null && data.get((String) obj).contains((String)cur_key)) {
+						keyIsValid = false;
+						break;
+							} else if (data.get((String)cur_key) != null && data.get((String)cur_key).contains((String) obj)) {
+						invalidKeys.add(obj);
+					}
+				}
+				for (Object obj : invalidKeys) {
+					_unsortedCounts.remove(obj);
+					validKeys.remove(obj);
+				}
+				if (keyIsValid) {
+					_unsortedCounts.put(cur_key, new Long(cur_freq));
+					validKeys.add(cur_key);
+				}
+			} else
+			{
+				_unsortedCounts.put(cur_key, new Long(cur_freq));
+			}
+		}
+
+		while (_unsortedCounts.size() > 0) {
+			Object max_obj_key = null;
+			Long max_value = new Long(0);
+			for (Object key : _unsortedCounts.keySet()) {
+				if (max_value <= _unsortedCounts.get(key)) {
+					max_value = _unsortedCounts.get(key);
+					max_obj_key = key;
+				}
+			}
+			_sortedKeys.add(max_obj_key);
+			_sortedCounts.add(max_value);
+			_unsortedCounts.remove(max_obj_key);
+		}
+
+	}
 	public void appendVirtualEntry(Object key) {
 		if (_unsortedPositions.get(key) != null) return;
 		add(key, key);
