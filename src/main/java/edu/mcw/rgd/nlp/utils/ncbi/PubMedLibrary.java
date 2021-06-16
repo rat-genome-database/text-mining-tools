@@ -504,7 +504,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	}
 
 
-	public int batchIndexToSolrByDate(Date startDate, Date endDate) {
+	/*public int batchIndexToSolrByDate(Date startDate, Date endDate) {
 		logger.info("Start indexing to Solr from "
 				+ PubMedRetriever.dateFormat.format(startDate) + " to "
 				+ PubMedRetriever.dateFormat.format(endDate));
@@ -554,7 +554,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		;
 		return 0;
 	}
-
+*/
 	public String getFileNameByDate(Date date) {
 		return FILE_NAME_DF.format(date);
 	}
@@ -1267,7 +1267,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		PubMedLibrary library = new PubMedLibrary();
 		library.setPathDoc(path);
 
-		library.batchIndexToSolrByDate(startDate, endDate);
+		//library.batchIndexToSolrByDate(startDate, endDate);
 	}
 
 	// private static void addMaptoDoc(XmlDoc solr_doc, SortedCountMap map,
@@ -1972,7 +1972,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		return true;
 	}
-	public static void indexArticle(long pmid) throws Exception {
+	/*public static void indexArticle(long pmid) throws Exception {
 		logger.info("[pmid:" + Long.toString(pmid) + "] Indexing to Solr...");
 		ArticleDAO art = new ArticleDAO();
 		ArticleOrganismClassifier aoc = new ArticleOrganismClassifier();
@@ -2110,7 +2110,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			}
 		}
 	}
-
+*/
 	public static String pmidToHbaseKey(String pmid) {
 		return new StringBuilder(pmid).reverse().toString();
 	}
