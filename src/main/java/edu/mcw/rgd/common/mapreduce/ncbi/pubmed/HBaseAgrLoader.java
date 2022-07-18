@@ -60,49 +60,15 @@ public class HBaseAgrLoader {
     }
 
     public static void main(String[] args) throws Exception {
-        Configuration conf = HBaseConfiguration.create();
-        conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
-        //conf.addResource(new Path("/usr/local/hbase/conf/hbase-site.xml"));
-        // conf.set("hbase.zookeeper.property.clientPort", "2181");
-        conf.set("hbase.client.retries.number", Integer.toString(1));
-        conf.set("zookeeper.session.timeout", Integer.toString(60000));
-        conf.set("zookeeper.recovery.retry", Integer.toString(0));
+        Configuration conf = HbaseUtils.createConfig();
 
-        Connection connection = ConnectionFactory.createConnection(conf);
-        Admin hba = connection.getAdmin();
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 2) {
             System.err.println("Usage: HBaseLoader <path> <table name>");
             System.exit(2);
         }
-        if (!hba.tableExists(TableName.valueOf(otherArgs[1]))) {
-
-            TableDescriptorBuilder ht = TableDescriptorBuilder.newBuilder(TableName.valueOf(otherArgs[1]));
-            ht.setRegionSplitPolicyClassName(ConstantSizeRegionSplitPolicy.class.getName());
-
-            ColumnFamilyDescriptor columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
-                    .newBuilder(Bytes.toBytes("d")).build();
-            ht.setColumnFamily(columnFamilyDescriptor);
-            columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
-                    .newBuilder(Bytes.toBytes("a")).build();
-            ht.setColumnFamily(columnFamilyDescriptor);
-            columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
-                    .newBuilder(Bytes.toBytes("c")).build();
-            ht.setColumnFamily(columnFamilyDescriptor);
-            columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
-                    .newBuilder(Bytes.toBytes("l")).build();
-            ht.setColumnFamily(columnFamilyDescriptor);
-            columnFamilyDescriptor = ColumnFamilyDescriptorBuilder
-                    .newBuilder(Bytes.toBytes("s")).build();
-            ht.setColumnFamily(columnFamilyDescriptor);
-
-            hba.createTable(ht.build());
-
-            System.out.println("New Table Created :"+ hba.tableExists(TableName.valueOf(otherArgs[1])));
-        } else {
-            System.out.println("Table Exists :");
-        }
+        HbaseUtils.createTable(otherArgs[1],conf);
         Job job = new Job(conf, "Import Agr papers to HBase:" + otherArgs[1] + " from " + otherArgs[0]);
         job.setJarByClass(HBaseAgrLoader.class);
         job.setMapperClass(HBaseAgrLoader.XMLMapper.class);
