@@ -1,7 +1,5 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
-import edu.mcw.rgd.common.utils.DataSourceFactory;
 import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;

@@ -1,23 +1,11 @@
 package edu.mcw.rgd.common.utils;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.jar.Attributes;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.stat.Frequency;
-
-import edu.mcw.rgd.database.ncbi.pubmed.OntTermConnectionsDAO;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 
 public class SortedCountMap {
 	private HashMap<Object, Object> _unsortedMap;
@@ -76,62 +64,8 @@ public class SortedCountMap {
 		_unsortedMap.put(key, value);
 		_keyFrquency.addValue((String)key);
 	}
-
 	public void sort() throws Exception {
-		sort(false);
-	}
-	
-	public void sort(boolean removeParents) throws Exception {
-		// Generate key counts
-		Iterator<Comparable<?>> it = _keyFrquency.valuesIterator();
-
-		List<Object> validKeys = new ArrayList<Object>();
-		List<Object> invalidKeys = new ArrayList<Object>();
-		while (it.hasNext()) {
-			invalidKeys.clear();
-			Object cur_key = it.next();
-			long cur_freq = _keyFrquency.getCount((String)cur_key);
-			if (removeParents) {
-				boolean keyIsValid = true;
-				HashMap<String,List<String>> data = OntTermConnectionsDAO.getTerms((String)cur_key);
-				for (Object obj : validKeys) {
-					//if (OntTermConnectionsDAO.isParent((String) obj, (String)cur_key)) {
-					if(data != null && data.get("childTerms").contains((String)obj)) {
-						keyIsValid = false;
-						break;
-						//	} else if (OntTermConnectionsDAO.isParent((String)cur_key,(String) obj)) {
-					}else if(data != null && data.get("parentTerms").contains((String)obj)){
-						invalidKeys.add(obj);
-					}
-				}
-				for (Object obj : invalidKeys) {
-					_unsortedCounts.remove(obj);
-					validKeys.remove(obj);
-				}
-				if (keyIsValid) {
-					_unsortedCounts.put(cur_key, new Long(cur_freq));
-					validKeys.add(cur_key);
-				}
-			} else
-			{
-				_unsortedCounts.put(cur_key, new Long(cur_freq));
-			}
-		}
-		
-		while (_unsortedCounts.size() > 0) {
-			Object max_obj_key = null;
-			Long max_value = new Long(0);
-			for (Object key : _unsortedCounts.keySet()) {
-				if (max_value <= _unsortedCounts.get(key)) {
-					max_value = _unsortedCounts.get(key);
-					max_obj_key = key;
-				}
-			}
-			_sortedKeys.add(max_obj_key);
-			_sortedCounts.add(max_value);
-			_unsortedCounts.remove(max_obj_key);
-		}
-		
+		sort(false,null);
 	}
 	public void sort(boolean removeParents,HashMap<String,List<String>> data) throws Exception {
 		// Generate key counts
@@ -205,12 +139,6 @@ public class SortedCountMap {
 	
 	public static void main(String[] args) throws Exception {
 		SortedCountMap sm = new SortedCountMap();
-//		sm.add("key2", "", "0;2-3");
-//		sm.add("key1", "", "0;5-6");
-//		sm.add("key1", "", "1;2-3");
-//		sm.add("key2", "", "0;2-3");
-//		sm.add("key3", "", "1;21-31");
-//		sm.add("key2", "", "1;12-13");
 		sm.add("RDO:0000001", "", "0;2-3");
 		sm.add("RDO:0000001", "", "0;5-6");
 		sm.add("RDO:0000001", "", "1;2-3");
@@ -223,7 +151,6 @@ public class SortedCountMap {
 		sm.add("RDO:0006036", "", "0;2-3");
 		sm.add("RDO:0005741", "", "0;2-3");
 		sm.add("RDO:0000004", "", "0;2-3");
-		sm.sort(true);
 		sm.appendVirtualEntry("RDO:0000004");
 		sm.appendVirtualEntry("RDO:8888888");
 		System.out.println("sorted result");

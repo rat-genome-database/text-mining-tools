@@ -102,11 +102,7 @@ public class DistributedAnnotator {
 			boolean hasArticle = false;
 			List<Cell> cells=result.listCells();
 			for(Cell c:cells){
-				//  System.out.println(c);
-				String r=new String(CellUtil.cloneRow(c));
-				String family= new String(CellUtil.cloneFamily(c));
 				String column=new String(CellUtil.cloneQualifier(c));
-				String val= new String(CellUtil.cloneValue(c));
 				if(column.equals("x")){
 					docTS=c.getTimestamp();
 					hasArticle=true;
@@ -177,27 +173,14 @@ public class DistributedAnnotator {
 	  public static Path hdfsGateAppPath ;
 
 	  public static Job configureJob(Configuration conf, String [] args) throws IOException {
-		 /* String path="/home/rgdpub/Work/Gate/STRUCTURE_7.0.zip";
-		  Path localGateAppPath = new Path(path);
-		  gateHomePath = gateHomePath + "STRUCTURE_7.0.zip";*/
-
-		 /* Path localGateAppPath = new Path(args[1]);
-		  gateHomePath = gateHomePath + localGateAppPath.getName();
-		 */ Path hdfsGateAppPath = new Path(args[1]);//gateHomePath);
-		/*  if (!args[1].equals("lastApp")) {
-			  		FileSystem fs = FileSystem.get(conf);
-			  		fs.copyFromLocalFile(localGateAppPath, hdfsGateAppPath);
-		  }
-		  */Scan sc=new Scan();
+		  Path hdfsGateAppPath = new Path(args[1]);
+			Scan sc=new Scan();
 		  conf.set(TableInputFormat.INPUT_TABLE, args[0]);
 		  conf.set(TableInputFormat.SCAN_COLUMN_FAMILY, "d");
 
 		  String scanConvertedString=TableMapReduceUtil.convertScanToString(sc);
 		  conf.set(TableInputFormat.SCAN, scanConvertedString );
 
-
-			 /*   conf.set("hbase.zookeeper.quorum", "tucker.rgd.mcw.edu");
-			    conf.set("zookeeper.znode.parent", "/hbase-unsecure");*/
 
 			    conf.set("annotation_useStemming", args[2]);
 			    conf.set("annotationColumn", args[3]);
@@ -220,7 +203,6 @@ public class DistributedAnnotator {
 	  public static void main(String[] args) throws Exception {
 		  Configuration conf = HBaseConfiguration.create();
 		  conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
-		 // conf.addResource(new Path("/usr/local/hbase/conf/hbase-site.xml"));
 		  conf.set("hbase.zookeeper.property.clientPort", "2181");
 		  conf.set("hbase.client.retries.number", Integer.toString(1));
 		  conf.set("zookeeper.session.timeout", Integer.toString(60000));

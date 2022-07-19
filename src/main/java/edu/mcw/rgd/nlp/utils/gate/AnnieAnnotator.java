@@ -18,23 +18,15 @@ import java.net.URL;
 import org.apache.hadoop.fs.Path;
 
 public class AnnieAnnotator {
-
-	public String encoding = null;
 	private CorpusController application = null;
 	private Corpus corpus = null;
-	private Document doc = null;
 	private boolean useStemming = false;
 	
 	public void init(String gappFile) throws Exception {
 		Gate.init();
-
 		application = (CorpusController) PersistenceManager
 				.loadObjectFromFile(new File(gappFile));
-
 		corpus = Factory.newCorpus("Annotator Corpus");
-//		doc = Factory.newDocument("");
-//		corpus.add(doc);
-
 		application.setCorpus(corpus);
 	}
 
@@ -53,20 +45,15 @@ public class AnnieAnnotator {
 				.loadObjectFromUrl(applicationURL);
 		
 		corpus = Factory.newCorpus("Annotator Corpus");
-//		doc = Factory.newDocument("");
-//		corpus.add(doc);
 		application.setCorpus(corpus);
 		System.out.println("HDFS Gate in " + gateHome + " initialized.");
 	}
 	
 	public Document process(String input_str) {
 		try {
-//			System.out.println("Text stemmed: " + useStemming);
-//			System.out.println("Annotating text: " + input_str);
 			clear();
 			Document doc = Factory.newDocument(input_str);
 			corpus.add(doc);
-//			doc.setContent(new DocumentContentImpl(input_str));
 			application.execute();
 			return doc;
 		} catch (Exception e) {
@@ -79,12 +66,9 @@ public class AnnieAnnotator {
 	}
 	public Document process1(String input_str, Long pmid) {
 		try {
-//			System.out.println("Text stemmed: " + useStemming);
-//			System.out.println("Annotating text: " + input_str);
 			clear();
 			Document doc = Factory.newDocument(input_str);
 			corpus.add(doc);
-//			doc.setContent(new DocumentContentImpl(input_str));
 			application.execute();
 			return doc;
 		} catch (Exception e) {
