@@ -14,7 +14,9 @@ import org.apache.hadoop.hbase.client.Result;
 
 import edu.mcw.rgd.nlp.utils.ncbi.PubMedDoc;
 import edu.mcw.rgd.nlp.utils.ncbi.PubMedDocSet;
-
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 
 public class ArticleDAO {
@@ -175,6 +177,41 @@ public class ArticleDAO {
 			this.publicationTypes=getPublicationTypes(article);
 			this.meshTerms = getMeshTerms(article);
 			this.keywords = getKeywords(article);
+			return true;
+		} catch (Exception e) {
+			System.err.println("Error in [" + pmid + "]");
+			System.err.println("This is not a fatal error!");
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public boolean getPmcArticleFromHResult(Result result) {
+		try {
+			String xmlStr = HbaseUtils.getField(result, "d", "x");
+			if (xmlStr == null || xmlStr.length() == 0) return false;
+			Document xmlDoc= Jsoup.parse(xmlStr, "", Parser.xmlParser());
+
+			this.pmid = Long.parseLong(PmcArticleDAO.getPMID(xmlDoc));
+			this.articleTitle = PmcArticleDAO.getArticleTitle(xmlDoc);
+			this.articleAbstract = PmcArticleDAO.getArticleAbstract(xmlDoc);
+			String dateStr = PmcArticleDAO.getArticlePubDate(xmlDoc);
+			if (dateStr.equalsIgnoreCase("/01/01"))
+			{
+				dateStr="2015/01/01";
+			}
+			Date jDate;
+			try {
+				jDate = new Date(PUB_DATE_DF.parse(dateStr).getTime());
+			} catch (Exception e) {
+				System.err.println("Error in [" + pmid + "]");
+				jDate = new Date(PUB_DATE_DF.parse("1800/01/01").getTime());
+			}
+			this.articlePubDate = jDate;
+			this.publicationYear = jDate.getYear() + 1900;
+			this.articleAuthors = PmcArticleDAO.getArticleAuthors(xmlDoc);
+			this.affiliation = PmcArticleDAO.getAffiliation(xmlDoc);
+			this.pmcId = PmcArticleDAO.getPmcId(xmlDoc);
+			this.doi = PmcArticleDAO.getDoi(xmlDoc);
 			return true;
 		} catch (Exception e) {
 			System.err.println("Error in [" + pmid + "]");

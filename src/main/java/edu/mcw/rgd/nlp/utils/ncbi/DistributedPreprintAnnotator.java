@@ -50,7 +50,6 @@ public class DistributedPreprintAnnotator {
             Configuration conf = context.getConfiguration();
             annotationSets = new ArrayList<String>();
 
-            //  Path[] localCache = DistributedCache.getLocalCacheArchives(conf);
             Path[] localCache = context.getLocalCacheArchives();
             gateHome = localCache[0].toString();
             System.out.println("local cache gate home: "+ gateHome);
@@ -86,11 +85,7 @@ public class DistributedPreprintAnnotator {
             boolean hasArticle = false;
             List<Cell> cells=result.listCells();
             for(Cell c:cells){
-                //  System.out.println(c);
-                String r=new String(CellUtil.cloneRow(c));
-                String family= new String(CellUtil.cloneFamily(c));
                 String column=new String(CellUtil.cloneQualifier(c));
-                String val= new String(CellUtil.cloneValue(c));
                 if(column.equals("x")){
                     docTS=c.getTimestamp();
                     hasArticle=true;

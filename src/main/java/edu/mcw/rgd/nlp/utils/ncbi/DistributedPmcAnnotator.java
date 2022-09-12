@@ -10,7 +10,6 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
-
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 
 
-public class DistributedAnnotator {
+public class DistributedPmcAnnotator {
 
 	  /**
 	   * Internal Mapper to be run by Hadoop.
@@ -38,7 +37,6 @@ public class DistributedAnnotator {
 
 		  public static final byte[] colFamily = Bytes.toBytes("a");
 		  public static final byte[] docColFamily = Bytes.toBytes("d");
-		  public static final byte[] linkColFamily = Bytes.toBytes("l");
 		  private String colStr = "g";
 		  private byte[] col = Bytes.toBytes(colStr);
 		  protected boolean intialize = false;
@@ -91,7 +89,7 @@ public class DistributedAnnotator {
 			}
 
 			if (hasArticle && (forcedTagging || annTS < docTS || annTag == null || !annTag.equals("Y"))) {
-				List<String> annotations = pml.mrAnnotateHResult(result, this.gateHome, useStemming);
+				List<String> annotations = pml.mrAnnotatePmcHResult(result, this.gateHome, useStemming);
 				String finalStr = "";
                 String pmid = pml.mrArticleDao.pmid.toString();
                 for (String ann : annotations) {
@@ -137,7 +135,7 @@ public class DistributedAnnotator {
           String annotationSets = args[4];
           conf.setStrings(PubMedLibrary.MR_ANN_SETS, annotationSets);
           Job job = new Job(conf, "Annotator using " + args[1]);
-          job.setJarByClass(DistributedAnnotator.class);
+          job.setJarByClass(DistributedPmcAnnotator.class);
           job.setMapperClass(Map.class);
           job.setNumReduceTasks(0);
           job.setInputFormatClass(TableInputFormat.class);

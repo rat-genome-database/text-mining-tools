@@ -1,11 +1,10 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
 
-import java.io.*;
-import java.util.*;
-
-
-import org.apache.hadoop.fs.*;
+import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Mutation;
@@ -14,18 +13,16 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
-
-import org.apache.hadoop.hbase.util.Bytes;
-
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.GenericOptionsParser;
-
-import edu.mcw.rgd.nlp.classifier.ArticleOrganismClassifier;
 import org.json.JSONObject;
+
+import java.io.*;
+import java.net.URI;
+import java.util.*;
 
 
 /**
@@ -35,7 +32,7 @@ import org.json.JSONObject;
  */
 
 
-public class IndexBuilder {
+public class PmcIndexBuilder {
 
 	/**
 	 * Internal Mapper to be run by Hadoop.
@@ -60,23 +57,18 @@ String address="";
 
 @Override
 protected void cleanup(Context context) throws IOException{
-        String pathString = "s3://emr-repository/output/";
+        String pathString = "s3://emr-repository/pmc-output/";
 
-        FileSystem fs = FileSystem.get(java.net.URI.create("s3://emr-repository/output/"), context.getConfiguration());
-    //FSDataOutputStream output ;
-
+        FileSystem fs = FileSystem.get(URI.create(pathString), context.getConfiguration());
                 Path path = new Path(pathString+context.getTaskAttemptID()+".json");
                 if(PubMedLibrary.jsonObjects.size() != 0) {
-                    //output = fs.create(path);
 					BufferedWriter output = new BufferedWriter
 							(new OutputStreamWriter(fs.create(path)));
 					for (JSONObject j : PubMedLibrary.jsonObjects) {
-						//ClientUtils.writeXML(j,output);
                     	output.write(j.toString());
 						output.write("\n");
 					}
-                    //out.writeBytes(solr_doc.getFieldValue("pmid")+","+solr_doc.getFieldValue("title") + "\n");
-					output.close();
+                  	output.close();
                     fs.close();
                     PubMedLibrary.jsonObjects.clear();
                 }
@@ -106,7 +98,7 @@ protected void cleanup(Context context) throws IOException{
 					br.close();
 
 				}
-				if (!PubMedLibrary.indexArticle(result,data))
+				if (!PubMedLibrary.indexPmcArticle(result,data))
 				{
 					System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
 
@@ -138,7 +130,6 @@ protected void cleanup(Context context) throws IOException{
 					}
 				}
 			} catch (Exception e) {
-
 				System.out.println("4. in indexBuilder map: Error");
 
 				e.printStackTrace();
@@ -157,7 +148,7 @@ protected void cleanup(Context context) throws IOException{
 		conf.set(TableInputFormat.INPUT_TABLE, tableName);
 		Path filePath = new Path("s3://emr-repository/terms.csv");
 		Job job = new Job(conf, "Indexing HBase:" + tableName + " to Solr");
-		job.setJarByClass(IndexBuilder.class);
+		job.setJarByClass(PmcIndexBuilder.class);
 		job.setMapperClass(Map.class);
 		job.setNumReduceTasks(0);
 		job.setInputFormatClass(TableInputFormat.class);

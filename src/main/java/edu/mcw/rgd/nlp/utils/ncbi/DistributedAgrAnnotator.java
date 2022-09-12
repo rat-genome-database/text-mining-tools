@@ -48,7 +48,6 @@ public class DistributedAgrAnnotator {
 
         public static final byte[] colFamily = Bytes.toBytes("a");
         public static final byte[] docColFamily = Bytes.toBytes("d");
-        public static final byte[] linkColFamily = Bytes.toBytes("l");
         private String colStr = "g";
         private byte[] col = Bytes.toBytes(colStr);
         protected int counter;
@@ -98,37 +97,26 @@ public class DistributedAgrAnnotator {
             boolean hasArticle = false;
             List<Cell> cells=result.listCells();
             for(Cell c:cells){
-                //  System.out.println(c);
-                String r=new String(CellUtil.cloneRow(c));
-                String family= new String(CellUtil.cloneFamily(c));
                 String column=new String(CellUtil.cloneQualifier(c));
-                String val= new String(CellUtil.cloneValue(c));
                 if(column.equals("x")){
                     docTS=c.getTimestamp();
                     hasArticle=true;
                 }
                 if (column.equals(colStr)) annTS = c.getTimestamp();
                 if (docTS > 0 && annTS > 0) break;
-
             }
 
             if (hasArticle && (forcedTagging || annTS < docTS || annTag == null || !annTag.equals("Y"))) {
                 List<String> annotations = pml.mrAnnotateAgrHResult(result, this.gateHome, useStemming);
                 String finalStr = "";
-
-                //String pmid = pml.mrArticleDao.pmid.toString();
                 for (String ann : annotations) {
                     finalStr += ann + "|";
                 }
-
                 Mutation dbComm = null;
-
-                if (finalStr.length() > 0) {
+                if (finalStr.length() > 0){
                     Put put = new Put(rowKey.get());
                     put.addColumn(colFamily, col, docTS, Bytes.toBytes(finalStr));
-
                     dbComm = put; //------------------------------------------
-
                 } else {
                     Delete delete = new Delete(rowKey.get());
                     delete.addColumn(colFamily, col);
@@ -146,7 +134,6 @@ public class DistributedAgrAnnotator {
                        context.write(new ImmutableBytesWritable(rowKey.get()), tagPut);
                     }
                 } catch (InterruptedException e) {
-                    //System.err.println("Error in saving to HBase:" + pmid);
                     e.printStackTrace();
                 }
             }

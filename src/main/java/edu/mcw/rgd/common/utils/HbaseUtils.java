@@ -6,11 +6,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.mapreduce.Mapper;
 
 public class HbaseUtils {
-  public static void createTable(String tableName, Configuration conf) throws Exception{
+  public static Table createTable(String tableName, Configuration conf) throws Exception{
 
       Connection connection = ConnectionFactory.createConnection(conf);
       Admin hba = connection.getAdmin();
@@ -41,6 +43,7 @@ public class HbaseUtils {
       } else {
           System.out.println("Table Exists :");
       }
+      return connection.getTable(TableName.valueOf(tableName));
   }
 
     public static Configuration createConfig() {
@@ -62,4 +65,5 @@ public class HbaseUtils {
             return null;
         }
     }
+
 }

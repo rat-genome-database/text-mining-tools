@@ -64,17 +64,33 @@ public class PubMedDocSet extends DocumentSetBase {
 			throw e;
 		}
 	}
-
+	public int setPmcDocXml(String docXml) throws Exception {
+		try {
+			docSetXML =  docXml;
+			return docSetXML.getBytes().length;
+		} catch (Exception e) {
+			logger.error("[Setting doc XML error]", e);
+			throw e;
+		}
+	}
 	public int parseDocSet() {
 		try {
-			articleSet=PubMedJSoupDoc.parseBulkXml(docSetXML);
+			articleSet=PubMedJSoupDoc.parseBulkXml(docSetXML,false);
 			 return articleSet.length;
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 			return 0;
 		}
 	}
-
+	public int parsePmcDocSet() {
+		try {
+			articleSet=PubMedJSoupDoc.parseBulkXml(docSetXML,true);
+			return articleSet.length;
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+			return 0;
+		}
+	}
 	public int getLength() {
 		return articleSet.length;
 	}
