@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.hbase:hbase-rsgroup:2.1.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.apache.hbase" artifactId="hbase-rsgroup" version="2.1.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-rsgroup/2.1.1/8908b849b2051731c29e1ee9a20c636d453863b7/hbase-rsgroup-2.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-rsgroup/2.1.1/623710e923556ff4b6291b970443202487887630/hbase-rsgroup-2.1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

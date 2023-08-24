@@ -113,8 +113,14 @@ public class PreprintIndexBuilder {
     public static void main(String[] args) throws Exception {
 
         System.out.println("============================================================");
-
+        DataSourceFactory.initMySQLDataSource();
         Configuration conf = HBaseConfiguration.create();
+<<<<<<< HEAD
+=======
+       /* conf.set("hbase.zookeeper.quorum", "gray03.rgd.mcw.edu");
+        conf.set("hbase.master", "gray01.rgd.mcw.edu:60000");
+        conf.set("hbase.zookeeper.property.clientPort", "2181");*/
+>>>>>>> e1d508f (updted datasourc init)
         conf.set("zookeeper.znode.parent", "/hbase-unsecure");
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();

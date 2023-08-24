@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.hbase:hbase-rest:2.1.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.apache.hbase" artifactId="hbase-rest" version="2.1.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-rest/2.1.1/cfe4182d8260b376865f13fdea2792b7f4363b08/hbase-rest-2.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-rest/2.1.1/a60bf2fd3862bbae3fcb884a39034d09c9dc22b5/hbase-rest-2.1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

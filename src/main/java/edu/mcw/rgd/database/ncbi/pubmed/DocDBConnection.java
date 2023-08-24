@@ -60,6 +60,7 @@ public class DocDBConnection {
 		}
 
 	}
+<<<<<<< HEAD
 /*	public static void connect() {
 		if (DBConn == null) {
 			ConnectionString ="jdbc:mysql://.rgd.mcw.edu/pubmed" ;  // Connect to default database
@@ -88,6 +89,8 @@ public class DocDBConnection {
 			}
 		}
 	}*/
+=======
+>>>>>>> e1d508f (updted datasourc init)
 
 	public static void disconnect() {
 		if (DBConn == null) {

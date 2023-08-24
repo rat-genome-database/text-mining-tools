@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.hbase:hbase-http:2.1.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.apache.hbase" artifactId="hbase-http" version="2.1.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-http/2.1.1/d6bb179f2cf2d2bc2f7cec07f4ddc06f60616efd/hbase-http-2.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.hbase/hbase-http/2.1.1/4150846fc5dfbf5c35a0b17c2888da952633387e/hbase-http-2.1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
