@@ -23,26 +23,3 @@ public class DataSourceFactory {
         return ds;
     }
 
-
-  /*public static void initMySQLDataSource(){
-        Properties props= new Properties();
-        FileInputStream fis=null;
-
-      //  MysqlDataSource ds= null;
-        try{
-          fis=new FileInputStream("/home/rgdpub/properties/mySqlDb.properties");
-         //   fis=new FileInputStream("C:/Apps/mySqlDb.properties");
-            props.load(fis);
-        /*    ds= new MysqlDataSource();
-            ds.setURL(props.getProperty("MYSQL_DB_URL"));
-            ds.setUser(props.getProperty("MYSQL_DB_USERNAME"));
-            ds.setPassword(props.getProperty("MYSQL_DB_PASSWORD"));*/
-        MYSQL_DB_URL=props.getProperty("MYSQL_DB_URL");
-        MYSQL_DB_USERNAME=props.getProperty("MYSQL_DB_USERNAME");
-        MYSQL_DB_PASSWORD=props.getProperty("MYSQL_DB_PASSWORD");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-     //   return ds;
-    }
-}*/
