@@ -24,7 +24,7 @@ public class DataSourceFactory {
     }
 
 
-  public static void initMySQLDataSource(){
+  /*public static void initMySQLDataSource(){
         Properties props= new Properties();
         FileInputStream fis=null;
 
@@ -45,4 +45,4 @@ public class DataSourceFactory {
         }
      //   return ds;
     }
-}
+}*/
