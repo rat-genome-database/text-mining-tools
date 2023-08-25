@@ -17,7 +17,9 @@ import org.apache.hadoop.mapreduce.Mapper.Context;
 public class ArticleOrganismClassifier {
 	
 	private static HashMap<Long, String> idNameMap = null;
-	private final static String ID_NAME_MAP_PATH = "/user/rgdpub/data/organism_tagger/id2sciName.lst";
+	private final static String ID_NAME_MAP_PATH = "s3://emr-repository/id2sciName.lst";
+	//private final static String ID_NAME_MAP_PATH = "/user/heliu/input/gate_files/id2sciName.lst";
+
 	private Frequency idFrequency = new Frequency();
 	
 	public ArticleOrganismClassifier() {

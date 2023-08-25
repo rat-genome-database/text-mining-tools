@@ -6,7 +6,7 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.8
 mainClassName='edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator'
-String appName='ontomate-tools'
+String appName='ontomate-tools3'
 repositories {
     mavenCentral()
 }

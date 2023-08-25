@@ -1,19 +1,11 @@
 package edu.mcw.rgd.common.utils;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.jar.Attributes;
 
 import org.apache.commons.math3.stat.Frequency;
-
-import edu.mcw.rgd.database.ncbi.pubmed.OntTermConnectionsDAO;
 
 public class SortedCountMap {
 	private HashMap<Object, Object> _unsortedMap;
@@ -37,6 +29,8 @@ public class SortedCountMap {
 	private List<Long> _sortedCounts;
 	private List<Object> _sortedKeys;
 	private Frequency _keyFrquency;
+
+
 	
 	public SortedCountMap() {
 		init();
@@ -49,6 +43,8 @@ public class SortedCountMap {
 		_sortedCounts = new ArrayList<Long>();
 		_sortedKeys = new ArrayList<Object>();
 		_keyFrquency = new Frequency();
+
+
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -68,12 +64,10 @@ public class SortedCountMap {
 		_unsortedMap.put(key, value);
 		_keyFrquency.addValue((String)key);
 	}
-
 	public void sort() throws Exception {
-		sort(false);
+		sort(false,null);
 	}
-	
-	public void sort(boolean removeParents) throws Exception {
+	public void sort(boolean removeParents,HashMap<String,List<String>> data) throws Exception {
 		// Generate key counts
 		Iterator<Comparable<?>> it = _keyFrquency.valuesIterator();
 
@@ -86,10 +80,10 @@ public class SortedCountMap {
 			if (removeParents) {
 				boolean keyIsValid = true;
 				for (Object obj : validKeys) {
-					if (OntTermConnectionsDAO.isParent((String) obj, (String)cur_key)) {
+					if (data.get((String) obj) != null && data.get((String) obj).contains((String)cur_key)) {
 						keyIsValid = false;
 						break;
-					} else if (OntTermConnectionsDAO.isParent((String)cur_key,(String) obj)) {
+							} else if (data.get((String)cur_key) != null && data.get((String)cur_key).contains((String) obj)) {
 						invalidKeys.add(obj);
 					}
 				}
@@ -106,7 +100,7 @@ public class SortedCountMap {
 				_unsortedCounts.put(cur_key, new Long(cur_freq));
 			}
 		}
-		
+
 		while (_unsortedCounts.size() > 0) {
 			Object max_obj_key = null;
 			Long max_value = new Long(0);
@@ -120,9 +114,8 @@ public class SortedCountMap {
 			_sortedCounts.add(max_value);
 			_unsortedCounts.remove(max_obj_key);
 		}
-		
+
 	}
-	
 	public void appendVirtualEntry(Object key) {
 		if (_unsortedPositions.get(key) != null) return;
 		add(key, key);
@@ -146,12 +139,6 @@ public class SortedCountMap {
 	
 	public static void main(String[] args) throws Exception {
 		SortedCountMap sm = new SortedCountMap();
-//		sm.add("key2", "", "0;2-3");
-//		sm.add("key1", "", "0;5-6");
-//		sm.add("key1", "", "1;2-3");
-//		sm.add("key2", "", "0;2-3");
-//		sm.add("key3", "", "1;21-31");
-//		sm.add("key2", "", "1;12-13");
 		sm.add("RDO:0000001", "", "0;2-3");
 		sm.add("RDO:0000001", "", "0;5-6");
 		sm.add("RDO:0000001", "", "1;2-3");
@@ -164,7 +151,6 @@ public class SortedCountMap {
 		sm.add("RDO:0006036", "", "0;2-3");
 		sm.add("RDO:0005741", "", "0;2-3");
 		sm.add("RDO:0000004", "", "0;2-3");
-		sm.sort(true);
 		sm.appendVirtualEntry("RDO:0000004");
 		sm.appendVirtualEntry("RDO:8888888");
 		System.out.println("sorted result");

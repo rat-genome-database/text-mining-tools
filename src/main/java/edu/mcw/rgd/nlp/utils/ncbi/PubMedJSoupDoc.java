@@ -28,7 +28,7 @@ public class PubMedJSoupDoc {
 
 	}
 	//------------------------------------------------------------------------
-	public static List<String> articleIdList(String text){
+	public static List<String>    articleIdList(String text){
 
 		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
 		List<String> idList=new ArrayList<String>();
@@ -404,12 +404,14 @@ public class PubMedJSoupDoc {
 	}
 
 	//----------------------------------------------------------------------
-	public static String[] parseBulkXml(String text){
+	public static String[] parseBulkXml(String text, boolean pmc){
 
 		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
 		List<String> list=new ArrayList<String>();
-
-		for(Element e1: xmlDoc.getElementsByTag("ns1:PubmedArticle"))
+		String tag = "ns1:PubmedArticle";
+		if(pmc)
+			tag = "article";
+		for(Element e1: xmlDoc.getElementsByTag(tag))
 			list.add(e1.toString());
 
 		String[] arr=new String[list.size()];
