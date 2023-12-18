@@ -92,18 +92,18 @@ public class SortedCountMap {
 					validKeys.remove(obj);
 				}
 				if (keyIsValid) {
-					_unsortedCounts.put(cur_key, new Long(cur_freq));
+					_unsortedCounts.put(cur_key,  Long.valueOf(cur_freq));
 					validKeys.add(cur_key);
 				}
 			} else
 			{
-				_unsortedCounts.put(cur_key, new Long(cur_freq));
+				_unsortedCounts.put(cur_key, Long.valueOf(cur_freq));
 			}
 		}
 
 		while (_unsortedCounts.size() > 0) {
 			Object max_obj_key = null;
-			Long max_value = new Long(0);
+			Long max_value = Long.valueOf((0));
 			for (Object key : _unsortedCounts.keySet()) {
 				if (max_value <= _unsortedCounts.get(key)) {
 					max_value = _unsortedCounts.get(key);
@@ -120,7 +120,7 @@ public class SortedCountMap {
 		if (_unsortedPositions.get(key) != null) return;
 		add(key, key);
 		_sortedKeys.add(key);
-		_sortedCounts.add(new Long(0));
+		_sortedCounts.add(0L);
 		String pos = "3;0-0";
 		_unsortedPositions.put(key,pos);
 	}
