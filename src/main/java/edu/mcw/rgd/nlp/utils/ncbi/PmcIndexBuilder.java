@@ -99,7 +99,7 @@ protected void cleanup(Context context) throws IOException{
 					br.close();
 
 				}
-				if (!PMCLibrary.indexPmcArticle(result,data))
+				if (!PubMedLibrary.indexArticle(result,data))
 				{
 					//System.out.println("Resetting taggs of " + Bytes.toString(rowKey.get()));
 					System.out.println("Getting new tags of " + Bytes.toString(rowKey.get()));
