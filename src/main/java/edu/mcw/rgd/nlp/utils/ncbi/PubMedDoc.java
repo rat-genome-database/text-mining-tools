@@ -4,6 +4,10 @@
  */
 package edu.mcw.rgd.nlp.utils.ncbi;
 
+import edu.mcw.rgd.database.ncbi.pubmed.ArticleDAO;
+import edu.mcw.rgd.nlp.utils.Document;
+import edu.mcw.rgd.nlp.utils.DocumentBase;
+
 import java.sql.Date;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,18 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import com.jcraft.jsch.Logger;
-
-import edu.mcw.rgd.common.utils.BasicUtils;
-import edu.mcw.rgd.database.ncbi.pubmed.ArticleDAO;
-import edu.mcw.rgd.nlp.utils.Document;
-import edu.mcw.rgd.nlp.utils.DocumentBase;
-
-import edu.mcw.rgd.nlp.utils.ncbi.PubMedJSoupDoc;
 
 /**
  * @author wliu

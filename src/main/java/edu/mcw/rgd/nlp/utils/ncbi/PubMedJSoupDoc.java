@@ -1,19 +1,14 @@
 package edu.mcw.rgd.nlp.utils.ncbi;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
-import org.jsoup.select.Elements;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 public class PubMedJSoupDoc {
@@ -27,6 +22,21 @@ public class PubMedJSoupDoc {
 		//		pmId(text);
 
 	}
+
+	public static ArrayList<String> getArticles(String text){
+
+		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		ArrayList<String> list=new ArrayList<String>();
+		String tag = "ns1:PubmedArticle";
+		for(Element e1: xmlDoc.getElementsByTag(tag)) {
+			list.add(e1.toString());
+		}
+
+		return list;
+
+	}
+
+
 	//------------------------------------------------------------------------
 	public static List<String>    articleIdList(String text){
 
@@ -39,6 +49,23 @@ public class PubMedJSoupDoc {
 
 		return idList;
 	}
+
+
+	//-------------------------------------------------------------------
+	public static String doi(String text){
+
+		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		StringBuffer out=new StringBuffer();
+
+		for(Element e:xmlDoc.getElementsByTag("ns1:ElocationID")){
+				if(e.attr("EIDType").equals("doi")) {
+					return e.html();
+				}
+		}
+
+		return out.toString();
+	}
+
 	//-------------------------------------------------------------------
 	public static String abstractText(String text){
 
@@ -278,7 +305,7 @@ public class PubMedJSoupDoc {
 					year=String.valueOf(i);
 				}
 				else{
-					month=PubMedDoc.MONTH_TABLE.get(medDate);
+					month= PubMedDoc.MONTH_TABLE.get(medDate);
 				}
 			}
 			if(seg[0]!=null){
