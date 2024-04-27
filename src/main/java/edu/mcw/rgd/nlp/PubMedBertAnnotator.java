@@ -18,10 +18,12 @@ public class PubMedBertAnnotator extends Thread{
 
     public String rootDir;
     public String articleFile;
+    public HugRunner hg;
 
     public PubMedBertAnnotator(String rootDir, String articleFile) {
         this.rootDir = rootDir;
         this.articleFile = articleFile;
+        this.hg = new HugRunner(rootDir);
     }
 
         public void run() {
@@ -86,10 +88,12 @@ public class PubMedBertAnnotator extends Thread{
 
 
     public static void main (String[] args) throws Exception {
-        System.out.println("hello");
+        System.out.println(args[0]);
+        System.out.println(args[1]);
 
-        new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_137.xml")).start();
-        new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_138.xml")).start();
+
+        new Thread(new PubMedBertAnnotator(args[0],args[1])).start();
+        //new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_138.xml")).start();
 
     }
 
@@ -99,7 +103,7 @@ public class PubMedBertAnnotator extends Thread{
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = HugRunner.runStructured("Chemical", pmid,abstractText);
+            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Chemical", pmid,abstractText);
 
             List<String> obj = new ArrayList<String>();
             List<String> pos = new ArrayList<String>();
@@ -129,7 +133,7 @@ public class PubMedBertAnnotator extends Thread{
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = HugRunner.runStructured("Anatomical", pmid, abstractText);
+            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Anatomical", pmid, abstractText);
 
             List<String> mas = new ArrayList<String>();
             List<String> maPos = new ArrayList<String>();
@@ -160,7 +164,7 @@ public class PubMedBertAnnotator extends Thread{
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = HugRunner.runStructured("Bioprocess", pmid, abstractText);
+            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Bioprocess", pmid, abstractText);
 
             List<String> bps = new ArrayList<String>();
             List<String> bpPos = new ArrayList<String>();
@@ -189,7 +193,7 @@ public class PubMedBertAnnotator extends Thread{
         String pmid = ra.getPmid().get(0);
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
-                HashMap<String, ArrayList<String>> hm = HugRunner.runStructured("Disease", pmid, abstractText);
+                HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Disease", pmid, abstractText);
 
                 List<String> diseases = new ArrayList<String>();
                 List<String> diseasePos = new ArrayList<String>();
@@ -223,7 +227,7 @@ public class PubMedBertAnnotator extends Thread{
         String pmid = ra.getPmid().get(0);
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = HugRunner.runStructured("Gene", pmid, abstractText);
+            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Gene", pmid, abstractText);
 
             List<String> genes = new ArrayList<String>();
             List<String> genePos = new ArrayList<String>();

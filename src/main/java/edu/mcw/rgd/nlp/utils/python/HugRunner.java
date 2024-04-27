@@ -5,12 +5,16 @@ import java.util.*;
 
 public class HugRunner {
 
-    public static String rootDir = "/Users/jdepons";
+    public String rootDir = "/Users/jdepons";
 
-    public static String getTermAccession(String term) throws Exception {
+    public HugRunner(String rootDirectory) {
+        this.rootDir = rootDirectory;
+    }
+
+    public  String getTermAccession(String term) throws Exception {
         //System.out.println("processing " + type);
 
-        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/term_n_synonym_match_query.py", term);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/ai/bertEnv/bin/python", rootDir + "/ai/bert/term_n_synonym_match_query.py", term);
         Process process = processBuilder.start();
         process.waitFor();
 
@@ -35,7 +39,7 @@ public class HugRunner {
     }
 
 
-    public static String runRaw(String type, String pubmedId, String text) throws Exception {
+    public String runRaw(String type, String pubmedId, String text) throws Exception {
         //System.out.println("processing " + type);
 
         String fileId = pubmedId + "." + type;
@@ -43,12 +47,12 @@ public class HugRunner {
         writer.write(text);
         writer.close();
 
-        //conda run -n ai python genes.py
-        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
+//        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/ai/bertEnv/bin/python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
         Process process = processBuilder.start();
         process.waitFor();
 
-        BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        //BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
 //        String e = "";
         //       while ((e = stdError.readLine()) != null) {
@@ -70,7 +74,7 @@ public class HugRunner {
 
     }
 
-    public static HashMap<String, ArrayList<String>> runStructured(String type, String pubmedId, String text) throws Exception {
+    public HashMap<String, ArrayList<String>> runStructured(String type, String pubmedId, String text) throws Exception {
 
         String fileData = runRaw(type, pubmedId, text);
 
@@ -134,7 +138,7 @@ public class HugRunner {
 
 
 
-    public static Set<String> runJob(String type, String pubmedId, String text) throws Exception{
+    public Set<String> runJob(String type, String pubmedId, String text) throws Exception{
 
 
         String fileData = runRaw(type, pubmedId, text);
