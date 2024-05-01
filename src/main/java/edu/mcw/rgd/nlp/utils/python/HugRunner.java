@@ -14,7 +14,7 @@ public class HugRunner {
     public  String getTermAccession(String term) throws Exception {
         //System.out.println("processing " + type);
 
-        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/ai/bertEnv/bin/python", rootDir + "/ai/bert/term_n_synonym_match_query.py", term);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/term_n_synonym_match_query.py", term);
         Process process = processBuilder.start();
         process.waitFor();
 
@@ -43,12 +43,12 @@ public class HugRunner {
         //System.out.println("processing " + type);
 
         String fileId = pubmedId + "." + type;
-        BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/ai/bert/tmp/" + fileId));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/bert/tmp/" + fileId));
         writer.write(text);
         writer.close();
 
 //        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
-        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/ai/bertEnv/bin/python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type);
         Process process = processBuilder.start();
         process.waitFor();
 
@@ -61,7 +61,7 @@ public class HugRunner {
 
         String fileData = "";
         try {
-            File myObj = new File(rootDir + "/ai/bert/tmp/" + fileId + ".out");
+            File myObj = new File(rootDir + "/bert/tmp/" + fileId + ".out");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 fileData += myReader.nextLine() + "\n";
