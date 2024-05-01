@@ -5,7 +5,7 @@ import java.util.*;
 
 public class HugRunner {
 
-    public String rootDir = "/Users/jdepons";
+    public String rootDir = "";
 
     public HugRunner(String rootDirectory) {
         this.rootDir = rootDirectory;
@@ -47,8 +47,8 @@ public class HugRunner {
         writer.write(text);
         writer.close();
 
-//        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type);
-        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type);
+//        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type, rootDir);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir);
         Process process = processBuilder.start();
         process.waitFor();
 
