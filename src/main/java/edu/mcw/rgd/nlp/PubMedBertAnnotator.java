@@ -60,12 +60,12 @@ public class PubMedBertAnnotator extends Thread{
 
                     System.out.println(count++  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
 
-                    FileWriter fw = new FileWriter(rootDir + "/ai/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
+                    FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
                     fw.close();
 
                     //conda run -n ai python genes.py
-                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/ai/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
+                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
                     Process process = processBuilder.start();
                     process.waitFor();
 
