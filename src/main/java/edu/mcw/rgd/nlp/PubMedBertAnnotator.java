@@ -96,9 +96,6 @@ public class PubMedBertAnnotator extends Thread{
 
 
     public static void main (String[] args) throws Exception {
-        System.out.println(args[0]);
-        System.out.println(args[1]);
-
         ArrayList<Thread> threads = new ArrayList<Thread>();
 
         //we need to multithread  args[2] is number of threads
@@ -109,7 +106,6 @@ public class PubMedBertAnnotator extends Thread{
 
             for (String fileName: files) {
                 if (threads.size()<threadCount) {
-                    System.out.println("Threads size = " + threads.size());
                     Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + fileName));
                     threads.add(t);
                     t.start();

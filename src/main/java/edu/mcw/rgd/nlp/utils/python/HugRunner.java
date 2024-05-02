@@ -87,14 +87,12 @@ public class HugRunner {
 
 
         String rowInit = rows[0];
-        System.out.println(rowInit);
         String[] colsInit = rowInit.split("!!");
         boolean first=true;
 
         LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
         if (rowInit != null && !rowInit.trim().equals("")) {
             term = colsInit[3];
-            System.out.println("got term " + colsInit[3]);
             start = colsInit[4];
             end = colsInit[5];
         }
