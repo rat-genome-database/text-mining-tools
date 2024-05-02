@@ -22,6 +22,8 @@ public class PubMedBertAnnotator extends Thread{
     public HugRunner hg;
     public int threads = 0;
 
+    public static int totalProcessed=0;
+
     public PubMedBertAnnotator(String rootDir, String articleFile) {
         this.rootDir = rootDir;
         this.articleFile = articleFile;
@@ -66,7 +68,7 @@ public class PubMedBertAnnotator extends Thread{
                     ra = this.loadMa(ra);
                     ra = this.loadChebi(ra);
 
-                    System.out.println(count++  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
+                    System.out.println(totalProcessed++ + " " + count++  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
 
                     FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
