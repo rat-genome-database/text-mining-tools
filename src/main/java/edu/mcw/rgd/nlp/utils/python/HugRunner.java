@@ -87,22 +87,27 @@ public class HugRunner {
 
 
         String rowInit = rows[0];
+        System.out.println(rowInit);
         String[] colsInit = rowInit.split("!!");
         boolean first=true;
 
         LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
         if (rowInit != null && !rowInit.trim().equals("")) {
             term = colsInit[3];
+            System.out.println("got term " + colsInit[3]);
             start = colsInit[4];
             end = colsInit[5];
         }
 
+        String row = rows[0];
+
+
         for (int i = 1; i < rows.length; i++) {
-            String row = rows[i];
+            //System.out.println("term " + term + " start " + start + " end " + end + " laststop " + lastStop);
 
             String[] cols = row.split("!!");
             if (cols.length < 2) continue;
-            if (cols[0].equals("I") || cols[3].indexOf("#") != -1) {
+            if (cols[0].equals("I") || cols[3].indexOf("#") != -1 || Integer.parseInt(cols[4]) == lastStop) {
                 if (Integer.parseInt(cols[4]) == lastStop) {
                     term +=cols[3].replaceAll("#","");
                 }else {
@@ -130,6 +135,8 @@ public class HugRunner {
                 end= cols[5];
             }
             lastStop=Integer.parseInt(cols[5]);
+            row = rows[i];
+
         }
 
         return hm;

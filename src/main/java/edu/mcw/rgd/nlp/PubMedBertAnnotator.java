@@ -6,19 +6,21 @@ import edu.mcw.rgd.nlp.datamodel.ResearchArticle;
 import edu.mcw.rgd.nlp.utils.python.HugRunner;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PubMedBertAnnotator extends Thread{
 
     public String rootDir;
     public String articleFile;
     public HugRunner hg;
+    public int threads = 0;
 
     public PubMedBertAnnotator(String rootDir, String articleFile) {
         this.rootDir = rootDir;
@@ -26,11 +28,17 @@ public class PubMedBertAnnotator extends Thread{
         this.hg = new HugRunner(rootDir);
     }
 
-        public void run() {
+    public PubMedBertAnnotator(String rootDir, String articleDir, int threads) {
+        this.rootDir = rootDir;
+        this.articleFile = articleDir;
+        this.hg = new HugRunner(rootDir);
+        this.threads=threads;
+    }
+
+    public void run() {
             try {
 
-                ArticleDAO art = new ArticleDAO();
-                ArrayList<String> articles = this.getArticles();
+                ArrayList<String> articles = this.getArticles(this.articleFile);
 
                 System.out.println("Total Articles: " + articles.size());
                 int count = 1;
@@ -91,11 +99,54 @@ public class PubMedBertAnnotator extends Thread{
         System.out.println(args[0]);
         System.out.println(args[1]);
 
+        ArrayList<Thread> threads = new ArrayList<Thread>();
 
-        new Thread(new PubMedBertAnnotator(args[0],args[1])).start();
-        //new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_138.xml")).start();
+        //we need to multithread  args[2] is number of threads
+        if (args.length==3) {
+            int threadCount = Integer.parseInt(args[2]);
 
+            Set<String> files = listFiles(args[1]);
+
+            for (String fileName: files) {
+                if (threads.size()<threadCount) {
+                    System.out.println("Threads size = " + threads.size());
+                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + fileName));
+                    threads.add(t);
+                    t.start();
+                    System.out.println("added thread");
+                }else {
+
+                    while (true) {
+                        for (Thread t: threads) {
+                            if (!t.isAlive()) {
+                                System.out.println("thread dead");
+                                threads.remove(t);
+                                t = new Thread(new PubMedBertAnnotator(args[0], fileName));
+                                threads.add(t);
+                                t.start();
+                                System.out.println("added thread");
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+
+        }else {
+            new Thread(new PubMedBertAnnotator(args[0], args[1])).start();
+            //new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_138.xml")).start();
+        }
     }
+
+    public static Set<String> listFiles(String dir) {
+        return Stream.of(new File(dir).listFiles())
+                .filter(file -> !file.isDirectory())
+                .map(File::getName)
+                .collect(Collectors.toSet());
+    }
+
 
     private ResearchArticle loadChebi(ResearchArticle ra) throws Exception {
 
@@ -280,9 +331,9 @@ public class PubMedBertAnnotator extends Thread{
         return al;
     }
 
-    public ArrayList<String> getArticles() throws Exception{
+    public ArrayList<String> getArticles(String pubmedXMLFile) throws Exception{
 
-            String content = new String(Files.readAllBytes(Paths.get(this.articleFile)));
+            String content = new String(Files.readAllBytes(Paths.get(pubmedXMLFile)));
 
         ArrayList<String> articles = PubMedJSoupDoc.getArticles(content);
 
