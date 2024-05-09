@@ -172,6 +172,8 @@ public class PubMedBertAnnotator extends Thread{
             ra.setChebiTerm(obj);
             ra.setChebiPos(pos);
             ra.setChebiId(ontIds);
+            System.out.println("chebi count = " + obj.size());
+
 
         }
         return ra;
@@ -202,6 +204,8 @@ public class PubMedBertAnnotator extends Thread{
             ra.setMaTerm(mas);
             ra.setMaPos(maPos);
             ra.setMaId(ontIds);
+            System.out.println("ma count = " + mas.size());
+
         }
         return ra;
     }
@@ -233,6 +237,8 @@ public class PubMedBertAnnotator extends Thread{
             ra.setBpTerm(bps);
             ra.setBpPos(bpPos);
             ra.setBpId(ontIds);
+            System.out.println("bp count = " + bps.size());
+
         }
         return ra;
     }
@@ -268,6 +274,7 @@ public class PubMedBertAnnotator extends Thread{
                 ra.setHpTerm(diseases);
                 ra.setHpPos(diseasePos);
                 ra.setHpId(ontIds);
+            System.out.println("disease count = " + diseases.size());
         }
         return ra;
     }
@@ -294,6 +301,7 @@ public class PubMedBertAnnotator extends Thread{
             ra.setGeneCount(geneCounts);
             ra.setGene(genes);
             ra.setGenePos(genePos);
+            System.out.println("gene count = " + genes.size());
         }
         return ra;
     }
