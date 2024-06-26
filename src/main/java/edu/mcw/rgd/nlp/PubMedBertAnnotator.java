@@ -45,7 +45,6 @@ public class PubMedBertAnnotator extends Thread{
                 System.out.println("Total Articles: " + articles.size());
                 int count = 1;
                 for (String article : articles) {
-
                     ResearchArticle ra = new ResearchArticle();
                     ArrayList<String> it = new ArrayList<String>();
                     ra.setDoiS(toList(PubMedJSoupDoc.doi(article)));
@@ -57,16 +56,37 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setpDate(toList(PubMedJSoupDoc.pubArticleDate(article).replace("/", "-")));
                     ra.setjDateS(toList(PubMedJSoupDoc.pubJournalDate(article)));
                     ra.setPmid(toList(PubMedJSoupDoc.pmId(article)));
-                    ra.setCitation(toList("need to add"));
+
+                    String citation = PubMedJSoupDoc.journalTitle(article) + "," + PubMedJSoupDoc.pubJournalDate(article) + ", " +
+                            PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
+                            PubMedJSoupDoc.journalPage(article) ;
+
+                    ra.setCitation(toList(citation));
                     ra.setMeshTerms(toListOfSizeOne(PubMedJSoupDoc.meshHeadingList(article)));
                     ra.setpYear(toList(Integer.parseInt(ra.getpDate().get(0).substring(0, 3))));
                     ra.setIssn(toList(PubMedJSoupDoc.issn(article)));
                     ra.setOrganismNCBIId(toList("10090"));
+                    ra.setOrganismCommonName(toList("homo sapiens"));
+
                     ra = this.loadGenes(ra);
-                    ra = this.loadRDO(ra);
+                    ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
-                    ra = this.loadMa(ra);
+                    ra= this.loadCC(ra);
                     ra = this.loadChebi(ra);
+                    ra = this.loadMA(ra);
+                    ra = this.loadMMO(ra);
+                    ra = this.loadMP(ra);
+                    ra = this.loadSO(ra);
+                   // ra = this.loadCMO(ra);
+                    ra = this.loadHP(ra);
+                    ra = this.loadNBO(ra);
+                   // ra = this.loadPW(ra);
+                   // ra = this.loadXCO(ra);
+                    ra = this.loadMF(ra);
+                   // ra = this.loadZFA(ra);
+                    //ra = this.loadOrganism(ra);
+                    ra = this.loadCT(ra);
+
 
                     System.out.println(totalProcessed++ + " " + count++  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
 
@@ -75,20 +95,19 @@ public class PubMedBertAnnotator extends Thread{
                     fw.close();
 
                     //conda run -n ai python genes.py
-                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
-                    Process process = processBuilder.start();
-                    process.waitFor();
+                    //ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
+                    //Process process = processBuilder.start();
+                    //process.waitFor();
 
-                    BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+ //                   BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                    String e = "";
-                    while ((e = stdout.readLine()) != null) {
+                    //String e = "";
+                    //while ((e = stdout.readLine()) != null) {
                         // System.out.println(e);
-                    }
+                    //}
 
-                    BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    //BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-//            System.out.println(ra.toJSON());
 
                 }
             }catch(Exception e) {
@@ -111,18 +130,15 @@ public class PubMedBertAnnotator extends Thread{
                     Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + fileName));
                     threads.add(t);
                     t.start();
-                    System.out.println("added thread");
                 }else {
 
                     while (true) {
                         for (Thread t: threads) {
                             if (!t.isAlive()) {
-                                System.out.println("thread dead");
                                 threads.remove(t);
                                 t = new Thread(new PubMedBertAnnotator(args[0], fileName));
                                 threads.add(t);
                                 t.start();
-                                System.out.println("added thread");
                             }
                         }
                     }
@@ -146,162 +162,288 @@ public class PubMedBertAnnotator extends Thread{
     }
 
 
+    private HashMap<String,ArrayList<String>> runModel(String model, ResearchArticle ra) throws Exception {
+        String pmid = ra.getPmid().get(0);
+        String abstractText = ra.getAbstractText().get(0);
+        String meshTerms = ra.getMeshTerms().get(0);
+
+        HashMap<String,ArrayList<String>> retMap = new HashMap<String,ArrayList<String>>();
+
+        HashMap<String, ArrayList<String>> hm = this.hg.runParsed(model, pmid, abstractText + " " + meshTerms);
+
+        ArrayList<String> bps = new ArrayList<String>();
+        ArrayList<String> bpPos = new ArrayList<String>();
+        ArrayList<String> bpCounts = new ArrayList<String>();
+        ArrayList<String> ontIds = new ArrayList<String>();
+
+        for (String key : hm.keySet()) {
+            if (key.endsWith("-ontId")) continue;
+            ArrayList<String> ontIdList = hm.get(key + "-ontId");
+
+            if (ontIdList.size() > 0) {
+                ontIds.add(ontIdList.get(0));
+            }else {
+                ontIds.add("DOID:0000004");
+            }
+
+            bps.add(key);
+            //ontIds.add("MP:0006087");
+            bpCounts.add(hm.get(key).size() + "");
+            for (String val : hm.get(key)) {
+                bpPos.add(val);
+            }
+        }
+
+        retMap.put("counts",bpCounts);
+        retMap.put("pos",bpPos);
+        retMap.put("terms",bps);
+        retMap.put("ids",ontIds);
+
+        //System.out.println(model + " - " + bps.size() + " - " + pmid);
+        return retMap;
+
+    }
+
+    private ResearchArticle loadOrganism(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("Organism",ra);
+            ra.setOrganismCount(modValues.get("counts"));
+            ra.setOrganismTerm(modValues.get("terms"));
+            ra.setOrganismPos(modValues.get("pos"));
+            ra.setOrganismId(modValues.get("ids"));
+        }
+        return ra;
+    }
+    private ResearchArticle loadNBO(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("NBO",ra);
+            ra.setNboCount(modValues.get("counts"));
+            ra.setNboTerm(modValues.get("terms"));
+            ra.setNboPos(modValues.get("pos"));
+            ra.setNboId(modValues.get("ids"));
+        }
+        return ra;
+    }
+
+    /*
+    private ResearchArticle loadZFA(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("ZFA",ra);
+            ra.setZfaCount(modValues.get("counts"));
+            ra.setZfaTerm(modValues.get("terms"));
+            ra.setZfaPos(modValues.get("pos"));
+            ra.setZfaId(modValues.get("ids"));
+        }
+        return ra;
+    }
+    */
+
+
+    private ResearchArticle loadCT(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("CT",ra);
+            ra.setCtCount(modValues.get("counts"));
+            ra.setCtTerm(modValues.get("terms"));
+            ra.setCtPos(modValues.get("pos"));
+            ra.setCtId(modValues.get("ids"));
+        }
+        return ra;
+    }
+    private ResearchArticle loadMF(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("MF",ra);
+            ra.setMfCount(modValues.get("counts"));
+            ra.setMfTerm(modValues.get("terms"));
+            ra.setMfPos(modValues.get("pos"));
+            ra.setMfId(modValues.get("ids"));
+        }
+        return ra;
+    }
+
+    private ResearchArticle loadHP(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("HP",ra);
+            ra.setHpCount(modValues.get("counts"));
+            ra.setHpTerm(modValues.get("terms"));
+            ra.setHpPos(modValues.get("pos"));
+            ra.setHpId(modValues.get("ids"));
+        }
+        return ra;
+    }
+   /*
+    private ResearchArticle loadXCO(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("XCO",ra);
+            ra.setXcoCount(modValues.get("counts"));
+            ra.setXcoTerm(modValues.get("terms"));
+            ra.setXcoPos(modValues.get("pos"));
+            ra.setXcoId(modValues.get("ids"));
+        }
+        return ra;
+    }
+**/
+ /*
+    private ResearchArticle loadCMO(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("CMO",ra);
+            ra.setCmoCount(modValues.get("counts"));
+            ra.setCmoTerm(modValues.get("terms"));
+            ra.setCmoPos(modValues.get("pos"));
+            ra.setCmoId(modValues.get("ids"));
+        }
+        return ra;
+    }
+    */
+
+    private ResearchArticle loadMP(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("MP",ra);
+            ra.setMpCount(modValues.get("counts"));
+            ra.setMpTerm(modValues.get("terms"));
+            ra.setMpPos(modValues.get("pos"));
+            ra.setMpId(modValues.get("ids"));
+        }
+        return ra;
+    }
+    /*
+    private ResearchArticle loadPW(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("PW",ra);
+            ra.setPwCount(modValues.get("counts"));
+            ra.setPwTerm(modValues.get("terms"));
+            ra.setPwPos(modValues.get("pos"));
+            ra.setPwId(modValues.get("ids"));
+        }
+        return ra;
+    }
+**/
+    private ResearchArticle loadSO(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("SO",ra);
+            ra.setSoCount(modValues.get("counts"));
+            ra.setSoTerm(modValues.get("terms"));
+            ra.setSoPos(modValues.get("pos"));
+            ra.setSoId(modValues.get("ids"));
+        }
+        return ra;
+    }
+
+    private ResearchArticle loadMMO(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("MMO",ra);
+            ra.setMmoCount(modValues.get("counts"));
+            ra.setMmoTerm(modValues.get("terms"));
+            ra.setMmoPos(modValues.get("pos"));
+            ra.setMmoId(modValues.get("ids"));
+        }
+        return ra;
+    }
+
     private ResearchArticle loadChebi(ResearchArticle ra) throws Exception {
-
-        String pmid = ra.getPmid().get(0);
+;
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Chemical", pmid,abstractText);
-
-            List<String> obj = new ArrayList<String>();
-            List<String> pos = new ArrayList<String>();
-            List<String> counts = new ArrayList<String>();
-            List<String> ontIds = new ArrayList<String>();
-            for (String key : hm.keySet()) {
-                obj.add(key);
-                ontIds.add("MP:0006087");
-
-                counts.add(hm.get(key).size() + "");
-                for (String val : hm.get(key)) {
-                    pos.add(val);
-                }
-            }
-
-            ra.setChebiCount(counts);
-            ra.setChebiTerm(obj);
-            ra.setChebiPos(pos);
-            ra.setChebiId(ontIds);
-            System.out.println("chebi count = " + obj.size());
-
-
+            HashMap<String,ArrayList<String>> modValues= this.runModel("Chebi",ra);
+            ra.setChebiCount(modValues.get("counts"));
+            ra.setChebiTerm(modValues.get("terms"));
+            ra.setChebiPos(modValues.get("pos"));
+            ra.setChebiId(modValues.get("ids"));
         }
         return ra;
     }
 
-    private ResearchArticle loadMa(ResearchArticle ra) throws Exception {
-        String pmid = ra.getPmid().get(0);
+    private ResearchArticle loadMA(ResearchArticle ra) throws Exception {
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Anatomical", pmid, abstractText);
-
-            List<String> mas = new ArrayList<String>();
-            List<String> maPos = new ArrayList<String>();
-            List<String> maCounts = new ArrayList<String>();
-            List<String> ontIds = new ArrayList<String>();
-
-            for (String key : hm.keySet()) {
-                mas.add(key);
-                ontIds.add("MP:0006087");
-                maCounts.add(hm.get(key).size() + "");
-                for (String val : hm.get(key)) {
-                    maPos.add(val);
-                }
-            }
-
-            ra.setMaCount(maCounts);
-            ra.setMaTerm(mas);
-            ra.setMaPos(maPos);
-            ra.setMaId(ontIds);
-            System.out.println("ma count = " + mas.size());
-
+            HashMap<String,ArrayList<String>> modValues= this.runModel("MA",ra);
+            ra.setMaCount(modValues.get("counts"));
+            ra.setMaTerm(modValues.get("terms"));
+            ra.setMaPos(modValues.get("pos"));
+            ra.setMaId(modValues.get("ids"));
         }
         return ra;
     }
 
+
+
+    private ResearchArticle loadCC(ResearchArticle ra) throws Exception {
+        String abstractText = ra.getAbstractText().get(0);
+
+        if (!abstractText.equals("")) {
+            HashMap<String,ArrayList<String>> modValues= this.runModel("CC",ra);
+            ra.setCcCount(modValues.get("counts"));
+            ra.setCcTerm(modValues.get("terms"));
+            ra.setCcPos(modValues.get("pos"));
+            ra.setCcId(modValues.get("ids"));
+        }
+        return ra;
+    }
 
 
     private ResearchArticle loadBP(ResearchArticle ra) throws Exception {
-        String pmid = ra.getPmid().get(0);
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Bioprocess", pmid, abstractText);
-
-            List<String> bps = new ArrayList<String>();
-            List<String> bpPos = new ArrayList<String>();
-            List<String> bpCounts = new ArrayList<String>();
-            List<String> ontIds = new ArrayList<String>();
-
-            for (String key : hm.keySet()) {
-                bps.add(key);
-                ontIds.add("MP:0006087");
-                bpCounts.add(hm.get(key).size() + "");
-                for (String val : hm.get(key)) {
-                    bpPos.add(val);
-                }
-            }
-
-            ra.setBpCount(bpCounts);
-            ra.setBpTerm(bps);
-            ra.setBpPos(bpPos);
-            ra.setBpId(ontIds);
-            System.out.println("bp count = " + bps.size());
-
+            HashMap<String,ArrayList<String>> modValues= this.runModel("BP",ra);
+            ra.setBpCount(modValues.get("counts"));
+            ra.setBpTerm(modValues.get("terms"));
+            ra.setBpPos(modValues.get("pos"));
+            ra.setBpId(modValues.get("ids"));
         }
         return ra;
     }
 
 
-    private ResearchArticle loadRDO(ResearchArticle ra) throws Exception {
-        String pmid = ra.getPmid().get(0);
+    private ResearchArticle loadDO(ResearchArticle ra) throws Exception {
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
-                HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Disease", pmid, abstractText);
+            HashMap<String,ArrayList<String>> modValues= this.runModel("DO",ra);
+                ra.setRdoCount(modValues.get("counts"));
+                ra.setRdoTerm(modValues.get("terms"));
+                ra.setRdoPos(modValues.get("pos"));
+                ra.setRdoId(modValues.get("ids"));
 
-                List<String> diseases = new ArrayList<String>();
-                List<String> diseasePos = new ArrayList<String>();
-                List<String> diseaseCounts = new ArrayList<String>();
-            List<String> ontIds = new ArrayList<String>();
-
-                for (String key : hm.keySet()) {
-                    diseases.add(key);
-                    //HugRunner.getTermAccession(key);
-                    ontIds.add("MP:0006087");
-                    diseaseCounts.add(hm.get(key).size() + "");
-                    for (String val : hm.get(key)) {
-                        diseasePos.add(val);
-                    }
-                }
-
-                ra.setRdoCount(diseaseCounts);
-                ra.setRdoTerm(diseases);
-                ra.setRdoPos(diseasePos);
-                ra.setRdoId(ontIds);
-
-                ra.setHpCount(diseaseCounts);
-                ra.setHpTerm(diseases);
-                ra.setHpPos(diseasePos);
-                ra.setHpId(ontIds);
-            System.out.println("disease count = " + diseases.size());
+                ra.setMpCount(modValues.get("counts"));
+                ra.setMpTerm(modValues.get("terms"));
+                ra.setMpPos(modValues.get("pos"));
+                ra.setMpId(modValues.get("ids"));
         }
         return ra;
     }
 
     private ResearchArticle loadGenes(ResearchArticle ra) throws Exception {
-        String pmid = ra.getPmid().get(0);
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
-            HashMap<String, ArrayList<String>> hm = this.hg.runStructured("Gene", pmid, abstractText);
-
-            List<String> genes = new ArrayList<String>();
-            List<String> genePos = new ArrayList<String>();
-            List<String> geneCounts = new ArrayList<String>();
-            List<String> ontIds = new ArrayList<String>();
-            for (String key : hm.keySet()) {
-                genes.add(key);
-                ontIds.add("2004");
-                geneCounts.add(hm.get(key).size() + "");
-                for (String val : hm.get(key)) {
-                    genePos.add(val);
-                }
-            }
-
-            ra.setGeneCount(geneCounts);
-            ra.setGene(genes);
-            ra.setGenePos(genePos);
-            System.out.println("gene count = " + genes.size());
+            HashMap<String,ArrayList<String>> modValues= this.runModel("Gene",ra);
+            ra.setGeneCount(modValues.get("counts"));
+            ra.setGene(modValues.get("terms"));
+            ra.setGenePos(modValues.get("pos"));
         }
         return ra;
     }

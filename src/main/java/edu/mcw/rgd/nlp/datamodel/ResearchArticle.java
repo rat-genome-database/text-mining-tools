@@ -15,7 +15,6 @@ public class ResearchArticle {
     private List<String> chebiPos;
     private List<String> maId;
     private List<String> pmcIdS;
-    private List<String> bpTerm;
     private List<String> chebiTerm;
     private List<String> pDate;
     private List<String> affiliation;
@@ -32,7 +31,6 @@ public class ResearchArticle {
     private List<String> mpCount;
     private List<String> issn;
     private List<String> mmoPos;
-    private List<String> bpId;
     private List<String> pType;
     private List<String> nboCount;
     private List<Integer> pYear;
@@ -54,17 +52,171 @@ public class ResearchArticle {
     private List<String> rdoPos;
     private List<String> abstractText;
     private List<String> pmid;
-    private List<String> bpCount;
     private List<String> mpPos;
     private List<String> hpCount;
-    private List<String> bpPos;
     private List<String> genePos;
     private List<String> soPos;
     private List<String> rdoTerm;
     private List<String> chebiId;
     private List<String> organismNCBIId;
+    private List<String> organismCommonName;
+    private List<String> bpTerm;
 
+    public List<String> getOrganismCommonName() {
+        return organismCommonName;
+    }
 
+    public void setOrganismCommonName(List<String> organismCommonName) {
+        this.organismCommonName = organismCommonName;
+    }
+
+    private List<String> bpId;
+    private List<String> bpCount;
+    private List<String> bpPos;
+    private List<String> ccTerm;
+    private List<String> ccId;
+    private List<String> ccCount;
+    private List<String> ccPos;
+    private List<String> mfTerm;
+    private List<String> mfId;
+    private List<String> mfCount;
+    private List<String> mfPos;
+    private List<String> ctTerm;
+    private List<String> ctId;
+    private List<String> ctCount;
+    private List<String> ctPos;
+    private List<String> organismTerm;
+    private List<String> organismId;
+    private List<String> organismCount;
+    private List<String> organismPos;
+
+    public List<String> getCtTerm() {
+        return ctTerm;
+    }
+
+    public void setCtTerm(List<String> ctTerm) {
+        this.ctTerm = ctTerm;
+    }
+
+    public List<String> getCtId() {
+        return ctId;
+    }
+
+    public void setCtId(List<String> ctId) {
+        this.ctId = ctId;
+    }
+
+    public List<String> getCtCount() {
+        return ctCount;
+    }
+
+    public void setCtCount(List<String> ctCount) {
+        this.ctCount = ctCount;
+    }
+
+    public List<String> getCtPos() {
+        return ctPos;
+    }
+
+    public void setCtPos(List<String> ctPos) {
+        this.ctPos = ctPos;
+    }
+
+    public List<String> getOrganismTerm() {
+        return organismTerm;
+    }
+
+    public void setOrganismTerm(List<String> organismTerm) {
+        this.organismTerm = organismTerm;
+    }
+
+    public List<String> getOrganismId() {
+        return organismId;
+    }
+
+    public void setOrganismId(List<String> organismId) {
+        this.organismId = organismId;
+    }
+
+    public List<String> getOrganismCount() {
+        return organismCount;
+    }
+
+    public void setOrganismCount(List<String> organismCount) {
+        this.organismCount = organismCount;
+    }
+
+    public List<String> getOrganismPos() {
+        return organismPos;
+    }
+
+    public void setOrganismPos(List<String> organismPos) {
+        this.organismPos = organismPos;
+    }
+
+    public List<String> getMfTerm() {
+        return mfTerm;
+    }
+
+    public void setMfTerm(List<String> mfTerm) {
+        this.mfTerm = mfTerm;
+    }
+
+    public List<String> getMfId() {
+        return mfId;
+    }
+
+    public void setMfId(List<String> mfId) {
+        this.mfId = mfId;
+    }
+
+    public List<String> getMfCount() {
+        return mfCount;
+    }
+
+    public void setMfCount(List<String> mfCount) {
+        this.mfCount = mfCount;
+    }
+
+    public List<String> getMfPos() {
+        return mfPos;
+    }
+
+    public void setMfPos(List<String> mfPos) {
+        this.mfPos = mfPos;
+    }
+
+    public List<String> getCcTerm() {
+        return ccTerm;
+    }
+
+    public void setCcTerm(List<String> ccTerm) {
+        this.ccTerm = ccTerm;
+    }
+
+    public List<String> getCcId() {
+        return ccId;
+    }
+
+    public void setCcId(List<String> ccId) {
+        this.ccId = ccId;
+    }
+
+    public List<String> getCcCount() {
+        return ccCount;
+    }
+
+    public void setCcCount(List<String> ccCount) {
+        this.ccCount = ccCount;
+    }
+
+    public List<String> getCcPos() {
+        return ccPos;
+    }
+
+    public void setCcPos(List<String> ccPos) {
+        this.ccPos = ccPos;
+    }
 
 
 // Constructors, getters, and setters for each field would go here.
@@ -525,62 +677,95 @@ public class ResearchArticle {
     public String toJSON() {
         JSONObject json = new JSONObject();
 
-        json.put("gene_count", new JSONArray(this.getGeneCount()));
-        json.put("mp_id", new JSONArray(this.getMpId()));
         json.put("keywords", new JSONArray(this.getKeywords()));
-        json.put("mmo_count", new JSONArray(this.getMmoCount()));
-        json.put("organism_ncbi_id", new JSONArray(this.getOrganismNCBIId()));
         json.put("doi_s", new JSONArray(this.getDoiS()));
-        json.put("chebi_pos", new JSONArray(this.getChebiPos()));
-        json.put("ma_id", new JSONArray(this.getMaId()));
         json.put("pmc_ids", new JSONArray(this.getPmcIdS()));
-        json.put("bp_term", new JSONArray(this.getBpTerm()));
-        json.put("chebi_term", new JSONArray(this.getChebiTerm()));
         //json.put("p_date", new JSONArray(this.getpDate()));
         json.put("affiliation", new JSONArray(this.getAffiliation()));
         json.put("mesh_terms", new JSONArray(this.getMeshTerms()));
-        json.put("chebi_count", new JSONArray(this.getChebiCount()));
         json.put("chemicals", new JSONArray(this.getChemicals()));
-        json.put("mp_term", new JSONArray(this.getMpTerm()));
-        json.put("mmo_term", new JSONArray(this.getMmoTerm()));
-        json.put("rdo_id", new JSONArray(this.getRdoId()));
-        json.put("nbo_pos", new JSONArray(this.getNboPos()));
-        json.put("gene", new JSONArray(this.getGene()));
-        json.put("so_term", new JSONArray(this.getSoTerm()));
-        json.put("ma_pos", new JSONArray(this.getMaPos()));
-        json.put("mp_count", new JSONArray(this.getMpCount()));
         json.put("issn", new JSONArray(this.getIssn()));
-        json.put("mmo_pos", new JSONArray(this.getMmoPos()));
-        json.put("bp_id", new JSONArray(this.getBpId()));
         json.put("p_type", new JSONArray(this.getpType()));
-        json.put("nbo_count", new JSONArray(this.getNboCount()));
         json.put("p_year", new JSONArray(this.getpYear()));
         json.put("authors", new JSONArray(this.getAuthors()));
-        json.put("mmo_id", new JSONArray(this.getMmoId()));
-        json.put("ma_count", new JSONArray(this.getMaCount()));
         json.put("j_date_s", new JSONArray(this.getjDateS()));
-        json.put("ma_term", new JSONArray(this.getMaTerm()));
-        json.put("rdo_count", new JSONArray(this.getRdoCount()));
         json.put("title", new JSONArray(this.getTitle()));
-        json.put("nbo_term", new JSONArray(this.getNboTerm()));
-        json.put("hp_pos", new JSONArray(this.getHpPos()));
-        json.put("nbo_id", new JSONArray(this.getNboId()));
-        json.put("so_count", new JSONArray(this.getSoCount()));
-        json.put("hp_term", new JSONArray(this.getHpTerm()));
-        json.put("so_id", new JSONArray(this.getSoId()));
-        json.put("hp_id", new JSONArray(this.getHpId()));
         json.put("citation", new JSONArray(this.getCitation()));
-        json.put("rdo_pos", new JSONArray(this.getRdoPos()));
         json.put("abstract", new JSONArray(this.getAbstractText()));
         json.put("pmid", new JSONArray(this.getPmid()));
-        json.put("bp_count", new JSONArray(this.getBpCount()));
-        json.put("mp_pos", new JSONArray(this.getMpPos()));
+
+        json.put("mmo_id", new JSONArray(this.getMmoId()));
+        json.put("mmo_pos", new JSONArray(this.getMmoPos()));
+        json.put("mmo_term", new JSONArray(this.getMmoTerm()));
+        json.put("mmo_count", new JSONArray(this.getMmoCount()));
+
+        json.put("ma_term", new JSONArray(this.getMaTerm()));
+        json.put("ma_count", new JSONArray(this.getMaCount()));
+        json.put("ma_pos", new JSONArray(this.getMaPos()));
+        json.put("ma_id", new JSONArray(this.getMaId()));
+
+        json.put("nbo_term", new JSONArray(this.getNboTerm()));
+        json.put("nbo_id", new JSONArray(this.getNboId()));
+        json.put("nbo_count", new JSONArray(this.getNboCount()));
+        json.put("nbo_pos", new JSONArray(this.getNboPos()));
+
+        json.put("hp_term", new JSONArray(this.getHpTerm()));
         json.put("hp_count", new JSONArray(this.getHpCount()));
-        json.put("bp_pos", new JSONArray(this.getBpPos()));
-        json.put("gene_pos", new JSONArray(this.getGenePos()));
-        json.put("so_pos", new JSONArray(this.getSoPos()));
+        json.put("hp_id", new JSONArray(this.getHpId()));
+        json.put("hp_pos", new JSONArray(this.getHpPos()));
+
         json.put("rdo_term", new JSONArray(this.getRdoTerm()));
+        json.put("rdo_pos", new JSONArray(this.getRdoPos()));
+        json.put("rdo_id", new JSONArray(this.getRdoId()));
+        json.put("rdo_count", new JSONArray(this.getRdoCount()));
+
+        json.put("so_pos", new JSONArray(this.getSoPos()));
+        json.put("so_id", new JSONArray(this.getSoId()));
+        json.put("so_term", new JSONArray(this.getSoTerm()));
+        json.put("so_count", new JSONArray(this.getSoCount()));
+
+        json.put("gene_count", new JSONArray(this.getGeneCount()));
+        json.put("gene", new JSONArray(this.getGene()));
+        json.put("gene_pos", new JSONArray(this.getGenePos()));
+
+        json.put("mp_id", new JSONArray(this.getMpId()));
+        json.put("mp_term", new JSONArray(this.getMpTerm()));
+        json.put("mp_count", new JSONArray(this.getMpCount()));
+        json.put("mp_pos", new JSONArray(this.getMpPos()));
+
+        json.put("chebi_pos", new JSONArray(this.getChebiPos()));
+        json.put("chebi_term", new JSONArray(this.getChebiTerm()));
+        json.put("chebi_count", new JSONArray(this.getChebiCount()));
         json.put("chebi_id", new JSONArray(this.getChebiId()));
+
+        json.put("bp_pos", new JSONArray(this.getBpPos()));
+        json.put("bp_count", new JSONArray(this.getBpCount()));
+        json.put("bp_id", new JSONArray(this.getBpId()));
+        json.put("bp_term", new JSONArray(this.getBpTerm()));
+
+        json.put("cc_pos", new JSONArray(this.getCcPos()));
+        json.put("cc_count", new JSONArray(this.getCcCount()));
+        json.put("cc_id", new JSONArray(this.getCcId()));
+        json.put("cc_term", new JSONArray(this.getCcTerm()));
+
+        json.put("mf_pos", new JSONArray(this.getMfPos()));
+        json.put("mf_count", new JSONArray(this.getMfCount()));
+        json.put("mf_id", new JSONArray(this.getMfId()));
+        json.put("mf_term", new JSONArray(this.getMfTerm()));
+
+        json.put("organism_pos", new JSONArray(this.getOrganismPos()));
+         json.put("organism_count", new JSONArray(this.getOrganismCount()));
+        // json.put("organism_id", new JSONArray(this.getOrganismId()));
+         //json.put("organism_term", new JSONArray(this.getOrganismTerm()));
+        json.put("organism_term", new JSONArray(this.getOrganismTerm()));
+        //json.put("organism_common_name", new JSONArray(this.getOrganismTerm()));
+        //json.put("organism_ncbi_id", new JSONArray(this.getOrganismNCBIId()));
+        //json.put("organism_common_name", new JSONArray(this.getOrganismCommonName()));
+
+         json.put("ct_pos", new JSONArray(this.getOrganismPos()));
+         json.put("ct_count", new JSONArray(this.getOrganismCount()));
+         json.put("ct_id", new JSONArray(this.getOrganismId()));
+         json.put("ct_term", new JSONArray(this.getOrganismTerm()));
 
         // Returns the JSON string
         return json.toString();

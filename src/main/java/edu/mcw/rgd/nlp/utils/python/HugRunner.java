@@ -1,6 +1,8 @@
 package edu.mcw.rgd.nlp.utils.python;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class HugRunner {
@@ -8,6 +10,7 @@ public class HugRunner {
     public String rootDir = "";
 
     public HugRunner(String rootDirectory) {
+
         this.rootDir = rootDirectory;
     }
 
@@ -31,7 +34,6 @@ public class HugRunner {
         String terms = "";
                while ((sout = stdOut.readLine()) != null) {
                    terms+=sout;
-                   System.out.println("im here " + sout);
              }
 
         return terms;
@@ -42,22 +44,25 @@ public class HugRunner {
     public String runRaw(String type, String pubmedId, String text) throws Exception {
         //System.out.println("processing " + type);
 
-        String fileId = pubmedId + "." + type;
-        BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/bert/tmp/" + fileId));
-        writer.write(text);
-        writer.close();
+        String fileId = pubmedId;
+        if (!Files.exists(Paths.get(rootDir + "/bert/tmp/" + fileId))) {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/bert/tmp/" + fileId));
+            writer.write(text);
+            writer.close();
+        }
+
 
 //        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type, rootDir);
-        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir);
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir,"1");
         Process process = processBuilder.start();
         process.waitFor();
 
-        //BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-//        String e = "";
-        //       while ((e = stdError.readLine()) != null) {
-        //out.println(e);
-        //     }
+        String er = "";
+               while ((er = stdError.readLine()) != null) {
+                //System.out.println(er);
+             }
 
         String fileData = "";
         try {
@@ -73,6 +78,83 @@ public class HugRunner {
         return fileData;
 
     }
+
+
+    public HashMap<String, ArrayList<String>> runParsed(String type, String pubmedId, String text) throws Exception {
+
+        String fileData = runRaw(type, pubmedId, text);
+
+        String[] rows = fileData.split("\\n");
+
+        LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
+
+        for (int i = 0; i < rows.length; i++) {
+
+            String row = rows[i];
+
+            String[] cols = row.split("\\|\\|");
+
+            if (cols.length < 2) continue;
+
+            String term = cols[0];
+            String start = cols[1];
+            String end = cols[2];
+            ArrayList<String> ontIds = new ArrayList<String>();
+
+            if (cols.length > 3) {
+                String accIdString = cols[3];
+                String[] accIds = accIdString.split("!");
+                if (accIds.length > 0) {
+                    for (String acc: accIds) {
+                        String accType = acc.substring(0,acc.indexOf(":"));
+
+                        if (type.equals("Disease") && (accType.equals("DOID") || accType.equals("RDO"))) {
+                            ontIds.add(acc);
+                        } else if (type.equals("Phenotype") && accType.equals("MP")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Cell-Type") && accType.equals("CL")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Chemical") && accType.equals("CHEBI")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Anatomical") && accType.equals("MA")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Cell-Component") && accType.equals("GO")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Bioprocess") && accType.equals("GO")) {
+                            ontIds.add(acc);
+
+                        } else if (type.equals("Gene")) {
+
+                        } else if (type.equals("Organism")) {
+
+                        }
+                    }
+                }
+            }
+
+            if (hm.containsKey(term)) {
+                ArrayList tmp = hm.get(term);
+                tmp.add(start + "-" + end);
+                hm.put(term, tmp);
+                hm.put(term + "-ontId",ontIds);
+            } else {
+                ArrayList tmp = new ArrayList();
+                tmp.add(start + "-" + end);
+                //System.out.println("adding " + term + " with start stop " + start + "-" + end);
+                hm.put(term,tmp);
+                hm.put(term + "-ontId",ontIds);
+            }
+
+        }
+        return hm;
+    }
+
+
 
     public HashMap<String, ArrayList<String>> runStructured(String type, String pubmedId, String text) throws Exception {
 
