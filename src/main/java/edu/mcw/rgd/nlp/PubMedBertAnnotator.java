@@ -69,6 +69,10 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setOrganismCommonName(toList("homo sapiens"));
 
                     ra = this.loadGenes(ra);
+                    if (ra.getGene().size() == 0) {
+                        System.out.println("No Genes Found");
+                        continue;
+                    }
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
@@ -481,9 +485,12 @@ public class PubMedBertAnnotator extends Thread{
 
     public ArrayList<String> getArticles(String pubmedXMLFile) throws Exception{
 
+            System.out.println(pubmedXMLFile);
+
             String content = new String(Files.readAllBytes(Paths.get(pubmedXMLFile)));
 
         ArrayList<String> articles = PubMedJSoupDoc.getArticles(content);
+        System.out.println("number of articls = " + articles.size());
 
             return articles;
 
