@@ -66,7 +66,7 @@ public class HugRunner {
 
         String fileData = "";
         try {
-            File myObj = new File(rootDir + "/bert/tmp/" + fileId + ".out");
+            File myObj = new File(rootDir + "/bert/tmp/" + fileId + "." + type + ".out");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 fileData += myReader.nextLine() + "\n";
@@ -84,9 +84,12 @@ public class HugRunner {
 
         String fileData = runRaw(type, pubmedId, text);
 
-        String[] rows = fileData.split("\\n");
-
         LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
+        if (fileData.startsWith("NA")) {
+            return hm;
+        }
+
+        String[] rows = fileData.split("\\n");
 
         for (int i = 0; i < rows.length; i++) {
 

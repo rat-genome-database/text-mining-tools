@@ -69,9 +69,11 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setOrganismCommonName(toList("homo sapiens"));
 
                     ra = this.loadGenes(ra);
-                    if (ra.getGene().size() == 0) {
+                    if (ra.getGene() == null || ra.getGene().size() == 0) {
                         System.out.println("No Genes Found");
                         continue;
+                    }else {
+                        System.out.println("found genes");
                     }
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
@@ -130,19 +132,20 @@ public class PubMedBertAnnotator extends Thread{
             Set<String> files = listFiles(args[1]);
 
             for (String fileName: files) {
+                System.out.println("threads.size = " + threads.size());
+
                 if (threads.size()<threadCount) {
                     Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + fileName));
                     threads.add(t);
                     t.start();
                 }else {
-
-                    while (true) {
+                    while (threads.size()==threadCount) {
                         for (Thread t: threads) {
                             if (!t.isAlive()) {
                                 threads.remove(t);
-                                t = new Thread(new PubMedBertAnnotator(args[0], fileName));
-                                threads.add(t);
-                                t.start();
+                                //t = new Thread(new PubMedBertAnnotator(args[0], fileName));
+                                //threads.add(t);
+                                //t.start();
                             }
                         }
                     }
@@ -203,7 +206,6 @@ public class PubMedBertAnnotator extends Thread{
         retMap.put("terms",bps);
         retMap.put("ids",ontIds);
 
-        //System.out.println(model + " - " + bps.size() + " - " + pmid);
         return retMap;
 
     }
@@ -485,7 +487,7 @@ public class PubMedBertAnnotator extends Thread{
 
     public ArrayList<String> getArticles(String pubmedXMLFile) throws Exception{
 
-            System.out.println(pubmedXMLFile);
+            System.out.println("here is the file " + pubmedXMLFile);
 
             String content = new String(Files.readAllBytes(Paths.get(pubmedXMLFile)));
 
