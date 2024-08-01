@@ -72,9 +72,8 @@ public class PubMedBertAnnotator extends Thread{
                     if (ra.getGene() == null || ra.getGene().size() == 0) {
                         System.out.println("No Genes Found");
                         continue;
-                    }else {
-                        System.out.println("found genes");
                     }
+
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
@@ -129,43 +128,48 @@ public class PubMedBertAnnotator extends Thread{
         if (args.length==3) {
             int threadCount = Integer.parseInt(args[2]);
 
-            Set<String> files = listFiles(args[1]);
+            List<String> files = listFiles(args[1]);
+            int filesProcessed = 0;
 
-            for (String fileName: files) {
-                System.out.println("threads.size = " + threads.size());
+            while (filesProcessed < files.size()) {
 
                 if (threads.size()<threadCount) {
-                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + fileName));
+                    System.out.println("processing " + files.get(filesProcessed));
+                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + files.get(filesProcessed)));
                     threads.add(t);
+                    filesProcessed++;
                     t.start();
                 }else {
-                    while (threads.size()==threadCount) {
-                        for (Thread t: threads) {
-                            if (!t.isAlive()) {
-                                threads.remove(t);
+                    for (Thread t: threads) {
+                        if (!t.isAlive()) {
+                            threads.remove(t);
+                            System.out.println("removing thread");
                                 //t = new Thread(new PubMedBertAnnotator(args[0], fileName));
                                 //threads.add(t);
                                 //t.start();
                             }
                         }
-                    }
 
                 }
+
 
             }
 
 
+
+
         }else {
-            new Thread(new PubMedBertAnnotator(args[0], args[1])).start();
+            System.out.println("args not = 3");
+            //new Thread(new PubMedBertAnnotator(args[0], args[1])).start();
             //new Thread(new PubMedBertAnnotator("/Users/jdepons","/Users/jdepons/git/dev/pubmed-crawler2/2015/2015_10_17_138.xml")).start();
         }
     }
 
-    public static Set<String> listFiles(String dir) {
+    public static List<String> listFiles(String dir) {
         return Stream.of(new File(dir).listFiles())
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
 
@@ -487,13 +491,8 @@ public class PubMedBertAnnotator extends Thread{
 
     public ArrayList<String> getArticles(String pubmedXMLFile) throws Exception{
 
-            System.out.println("here is the file " + pubmedXMLFile);
-
             String content = new String(Files.readAllBytes(Paths.get(pubmedXMLFile)));
-
         ArrayList<String> articles = PubMedJSoupDoc.getArticles(content);
-        System.out.println("number of articls = " + articles.size());
-
             return articles;
 
     }
