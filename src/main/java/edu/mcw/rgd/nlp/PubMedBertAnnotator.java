@@ -453,6 +453,7 @@ public class PubMedBertAnnotator extends Thread{
             HashMap<String,ArrayList<String>> modValues= this.runModel("Gene",ra);
             ra.setGeneCount(modValues.get("counts"));
             ra.setGene(modValues.get("terms"));
+            System.out.println(modValues.get("terms"));
             ra.setGenePos(modValues.get("pos"));
         }
         return ra;
