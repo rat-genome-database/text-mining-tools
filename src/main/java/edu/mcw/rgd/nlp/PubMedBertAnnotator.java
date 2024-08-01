@@ -69,10 +69,10 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setOrganismCommonName(toList("homo sapiens"));
 
                     ra = this.loadGenes(ra);
-                    if (ra.getGene() == null || ra.getGene().size() == 0) {
-                        System.out.println("No Genes Found");
-                        continue;
-                    }
+                    //if (ra.getGene() == null || ra.getGene().size() == 0) {
+                    //    System.out.println("No Genes Found");
+                    //    continue;
+                   // }
 
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
