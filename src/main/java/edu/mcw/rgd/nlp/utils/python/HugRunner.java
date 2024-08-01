@@ -42,7 +42,7 @@ public class HugRunner {
 
 
     public String runRaw(String type, String pubmedId, String text) throws Exception {
-        //System.out.println("processing " + type);
+        System.out.println("processing " + type);
 
         String fileId = pubmedId;
         if (!Files.exists(Paths.get(rootDir + "/bert/tmp/" + fileId))) {
@@ -61,7 +61,7 @@ public class HugRunner {
 
         String er = "";
                while ((er = stdError.readLine()) != null) {
-                //System.out.println(er);
+                System.out.println(er);
              }
 
         String fileData = "";
