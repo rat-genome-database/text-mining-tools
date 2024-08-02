@@ -189,7 +189,7 @@ public class PubMedBertAnnotator extends Thread{
 
         for (String key : hm.keySet()) {
             if (key.startsWith("none")) {
-                System.out.println("returned none");
+                continue;
             }
             if (key.endsWith("-ontId")) continue;
             ArrayList<String> ontIdList = hm.get(key + "-ontId");
