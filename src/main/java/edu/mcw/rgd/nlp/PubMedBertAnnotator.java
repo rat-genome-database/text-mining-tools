@@ -69,10 +69,10 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setOrganismCommonName(toList("homo sapiens"));
 
                     ra = this.loadGenes(ra);
-                    //if (ra.getGene() == null || ra.getGene().size() == 0) {
-                    //    System.out.println("No Genes Found");
-                    //    continue;
-                   // }
+                    if (ra.getGene() == null || ra.getGene().size() == 0) {
+                        System.out.println("No Genes Found");
+                        continue;
+                    }
 
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
@@ -188,6 +188,9 @@ public class PubMedBertAnnotator extends Thread{
         ArrayList<String> ontIds = new ArrayList<String>();
 
         for (String key : hm.keySet()) {
+            if (key.startsWith("none")) {
+                System.out.println("returned none");
+            }
             if (key.endsWith("-ontId")) continue;
             ArrayList<String> ontIdList = hm.get(key + "-ontId");
 
