@@ -64,6 +64,14 @@ public class HugRunner {
                 System.out.println(er);
              }
 
+        BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String or = "";
+        while ((or = stdOut.readLine()) != null) {
+            System.out.println(or);
+        }
+
+
         String fileData = "";
         try {
             File myObj = new File(rootDir + "/bert/tmp/" + fileId + "." + type + ".out");

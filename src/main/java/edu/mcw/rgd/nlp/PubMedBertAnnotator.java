@@ -100,18 +100,23 @@ public class PubMedBertAnnotator extends Thread{
                     fw.close();
 
                     //conda run -n ai python genes.py
-                    //ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
-                    //Process process = processBuilder.start();
-                    //process.waitFor();
+                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
+                    Process process = processBuilder.start();
+                    process.waitFor();
 
- //                   BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                    //String e = "";
-                    //while ((e = stdout.readLine()) != null) {
-                        // System.out.println(e);
-                    //}
+                    String ou = "";
+                    while ((ou = stdout.readLine()) != null) {
+                         System.out.println(ou);
+                    }
 
-                    //BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+                    String err = "";
+                    while ((err = stdout.readLine()) != null) {
+                        System.out.println(err);
+                    }
 
 
                 }
