@@ -4,6 +4,7 @@ import edu.mcw.rgd.nlp.utils.ncbi.*;
 import edu.mcw.rgd.database.ncbi.pubmed.ArticleDAO;
 import edu.mcw.rgd.nlp.datamodel.ResearchArticle;
 import edu.mcw.rgd.nlp.utils.python.HugRunner;
+import org.apache.commons.net.ntp.TimeStamp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +12,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,12 +43,16 @@ public class PubMedBertAnnotator extends Thread{
             try {
 
                 ArrayList<String> articles = this.getArticles(this.articleFile);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss");
 
                 System.out.println("Total Articles: " + articles.size());
                 int count = 1;
                 for (String article : articles) {
                     ResearchArticle ra = new ResearchArticle();
                     ArrayList<String> it = new ArrayList<String>();
+                    ra.setPmid(toList(PubMedJSoupDoc.pmId(article)));
+
+                    System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid());
                     ra.setDoiS(toList(PubMedJSoupDoc.doi(article)));
                     ra.setTitle(toList(PubMedJSoupDoc.articleTitle(article)));
                     ra.setKeywords(toListOfSizeOne(PubMedJSoupDoc.keywordList(article)));
@@ -55,7 +61,6 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setAuthors(toListOfSizeOne(PubMedJSoupDoc.authorList(article)));
                     ra.setpDate(toList(PubMedJSoupDoc.pubArticleDate(article).replace("/", "-")));
                     ra.setjDateS(toList(PubMedJSoupDoc.pubJournalDate(article)));
-                    ra.setPmid(toList(PubMedJSoupDoc.pmId(article)));
 
                     String citation = PubMedJSoupDoc.journalTitle(article) + "," + PubMedJSoupDoc.pubJournalDate(article) + ", " +
                             PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
@@ -68,9 +73,10 @@ public class PubMedBertAnnotator extends Thread{
                     ra.setOrganismNCBIId(toList("10090"));
                     ra.setOrganismCommonName(toList("homo sapiens"));
 
+                    count++;
                     ra = this.loadGenes(ra);
                     if (ra.getGene() == null || ra.getGene().size() == 0) {
-                        System.out.println("No Genes Found");
+                        //System.out.println("No Genes Found");
                         continue;
                     }
 
@@ -93,7 +99,7 @@ public class PubMedBertAnnotator extends Thread{
                     ra = this.loadCT(ra);
 
 
-                    System.out.println(totalProcessed++ + " " + count++  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
+                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed++ + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
 
                     FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
@@ -108,14 +114,14 @@ public class PubMedBertAnnotator extends Thread{
 
                     String ou = "";
                     while ((ou = stdout.readLine()) != null) {
-                         System.out.println(ou);
+                        // System.out.println(ou);
                     }
 
                     BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
                     String err = "";
                     while ((err = stdout.readLine()) != null) {
-                        System.out.println(err);
+                       // System.out.println(err);
                     }
 
 
@@ -139,7 +145,7 @@ public class PubMedBertAnnotator extends Thread{
             while (filesProcessed < files.size()) {
 
                 if (threads.size()<threadCount) {
-                    System.out.println("processing " + files.get(filesProcessed));
+                    //System.out.println("processing " + files.get(filesProcessed));
                     Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + files.get(filesProcessed)));
                     threads.add(t);
                     filesProcessed++;
@@ -179,6 +185,8 @@ public class PubMedBertAnnotator extends Thread{
 
 
     private HashMap<String,ArrayList<String>> runModel(String model, ResearchArticle ra) throws Exception {
+        //System.out.println("runing Model: " + model);
+
         String pmid = ra.getPmid().get(0);
         String abstractText = ra.getAbstractText().get(0);
         String meshTerms = ra.getMeshTerms().get(0);
@@ -200,6 +208,7 @@ public class PubMedBertAnnotator extends Thread{
             ArrayList<String> ontIdList = hm.get(key + "-ontId");
 
             if (ontIdList.size() > 0) {
+                //System.out.println("adding Ont: " + ontIdList.get(0));
                 ontIds.add(ontIdList.get(0));
             }else {
                 ontIds.add("DOID:0000004");
@@ -461,7 +470,7 @@ public class PubMedBertAnnotator extends Thread{
             HashMap<String,ArrayList<String>> modValues= this.runModel("Gene",ra);
             ra.setGeneCount(modValues.get("counts"));
             ra.setGene(modValues.get("terms"));
-            System.out.println(modValues.get("terms"));
+            //System.out.println(modValues.get("terms"));
             ra.setGenePos(modValues.get("pos"));
         }
         return ra;

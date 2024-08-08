@@ -42,7 +42,6 @@ public class HugRunner {
 
 
     public String runRaw(String type, String pubmedId, String text) throws Exception {
-        System.out.println("processing " + type);
 
         String fileId = pubmedId;
         if (!Files.exists(Paths.get(rootDir + "/bert/tmp/" + fileId))) {
@@ -61,14 +60,14 @@ public class HugRunner {
 
         String er = "";
                while ((er = stdError.readLine()) != null) {
-                System.out.println(er);
+                //System.out.println(er);
              }
 
         BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
         String or = "";
         while ((or = stdOut.readLine()) != null) {
-            System.out.println(or);
+            //System.out.println(or);
         }
 
 
@@ -103,6 +102,8 @@ public class HugRunner {
 
             String row = rows[i];
 
+            //System.out.println(row);
+
             String[] cols = row.split("\\|\\|");
 
             if (cols.length < 2) continue;
@@ -115,6 +116,10 @@ public class HugRunner {
             if (cols.length > 3) {
                 String accIdString = cols[3];
                 String[] accIds = accIdString.split("!");
+
+                //System.out.println("adding ont ID " + accIds[0]);
+                ontIds.add(accIds[0]);
+                /*
                 if (accIds.length > 0) {
                     for (String acc: accIds) {
                         String accType = acc.substring(0,acc.indexOf(":"));
@@ -145,7 +150,9 @@ public class HugRunner {
 
                         }
                     }
+
                 }
+                */
             }
 
             if (hm.containsKey(term)) {
