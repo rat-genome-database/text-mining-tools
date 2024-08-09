@@ -15,7 +15,6 @@ public class HugRunner {
     }
 
     public  String getTermAccession(String term) throws Exception {
-        //System.out.println("processing " + type);
 
         ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/term_n_synonym_match_query.py", term);
         Process process = processBuilder.start();
@@ -60,14 +59,14 @@ public class HugRunner {
 
         String er = "";
                while ((er = stdError.readLine()) != null) {
-                //System.out.println(er);
+                System.out.println(er);
              }
 
         BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
         String or = "";
         while ((or = stdOut.readLine()) != null) {
-            //System.out.println(or);
+            System.out.println(or);
         }
 
 
@@ -102,7 +101,7 @@ public class HugRunner {
 
             String row = rows[i];
 
-            //System.out.println(row);
+            System.out.println(row);
 
             String[] cols = row.split("\\|\\|");
 

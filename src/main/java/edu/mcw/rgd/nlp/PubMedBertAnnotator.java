@@ -114,14 +114,14 @@ public class PubMedBertAnnotator extends Thread{
 
                     String ou = "";
                     while ((ou = stdout.readLine()) != null) {
-                        // System.out.println(ou);
+                         System.out.println(ou);
                     }
 
                     BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
                     String err = "";
                     while ((err = stdout.readLine()) != null) {
-                       // System.out.println(err);
+                        System.out.println(err);
                     }
 
 
