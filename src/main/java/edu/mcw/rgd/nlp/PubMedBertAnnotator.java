@@ -52,7 +52,7 @@ public class PubMedBertAnnotator extends Thread{
                     ArrayList<String> it = new ArrayList<String>();
                     ra.setPmid(toList(PubMedJSoupDoc.pmId(article)));
 
-                    System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid());
+                    System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid() + " **************************************************");
                     ra.setDoiS(toList(PubMedJSoupDoc.doi(article)));
                     ra.setTitle(toList(PubMedJSoupDoc.articleTitle(article)));
                     ra.setKeywords(toListOfSizeOne(PubMedJSoupDoc.keywordList(article)));
@@ -99,7 +99,7 @@ public class PubMedBertAnnotator extends Thread{
                     ra = this.loadCT(ra);
 
 
-                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed++ + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")");
+                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed++ + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
 
                     FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
