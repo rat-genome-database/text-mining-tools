@@ -88,6 +88,7 @@ public class HugRunner {
 
     public HashMap<String, ArrayList<String>> runParsed(String type, String pubmedId, String text) throws Exception {
 
+        System.out.println("***************Running for " + type);
         String fileData = runRaw(type, pubmedId, text);
 
         LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
