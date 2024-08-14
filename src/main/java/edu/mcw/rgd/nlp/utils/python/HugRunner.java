@@ -40,7 +40,7 @@ public class HugRunner {
     }
 
 
-    public String runRaw(String type, String pubmedId, String text) throws Exception {
+    public String runRaw(String type, String pubmedId, String text,String llm) throws Exception {
 
         String fileId = pubmedId;
         if (!Files.exists(Paths.get(rootDir + "/bert/tmp/" + fileId))) {
@@ -51,7 +51,7 @@ public class HugRunner {
 
 
 //        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type, rootDir);
-        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir,"1");
+        ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir,"1",llm);
         Process process = processBuilder.start();
         process.waitFor();
 
@@ -86,10 +86,10 @@ public class HugRunner {
     }
 
 
-    public HashMap<String, ArrayList<String>> runParsed(String type, String pubmedId, String text) throws Exception {
+    public HashMap<String, ArrayList<String>> runParsed(String type, String pubmedId, String text,String llm) throws Exception {
 
         System.out.println("***************Running for " + type);
-        String fileData = runRaw(type, pubmedId, text);
+        String fileData = runRaw(type, pubmedId, text,llm);
 
         LinkedHashMap<String, ArrayList<String>> hm = new LinkedHashMap<String, ArrayList<String>>();
         if (fileData.startsWith("NA")) {
@@ -174,9 +174,9 @@ public class HugRunner {
 
 
 
-    public HashMap<String, ArrayList<String>> runStructured(String type, String pubmedId, String text) throws Exception {
+    public HashMap<String, ArrayList<String>> runStructured(String type, String pubmedId, String text, String llm) throws Exception {
 
-        String fileData = runRaw(type, pubmedId, text);
+        String fileData = runRaw(type, pubmedId, text, llm);
 
         String[] rows = fileData.split("\\n");
 
@@ -243,10 +243,10 @@ public class HugRunner {
 
 
 
-    public Set<String> runJob(String type, String pubmedId, String text) throws Exception{
+    public Set<String> runJob(String type, String pubmedId, String text, String llm) throws Exception{
 
 
-        String fileData = runRaw(type, pubmedId, text);
+        String fileData = runRaw(type, pubmedId, text,llm);
 
         String[] rows = fileData.split("\\n");
 

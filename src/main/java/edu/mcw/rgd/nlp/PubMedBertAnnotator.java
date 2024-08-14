@@ -23,20 +23,23 @@ public class PubMedBertAnnotator extends Thread{
     public String articleFile;
     public HugRunner hg;
     public int threads = 0;
+    public String llm;
 
     public static int totalProcessed=0;
 
-    public PubMedBertAnnotator(String rootDir, String articleFile) {
+    public PubMedBertAnnotator(String rootDir, String articleFile,String llm) {
         this.rootDir = rootDir;
         this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
+        this.llm = llm;
     }
 
-    public PubMedBertAnnotator(String rootDir, String articleDir, int threads) {
+    public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
         this.rootDir = rootDir;
         this.articleFile = articleDir;
         this.hg = new HugRunner(rootDir);
         this.threads=threads;
+        this.llm = llm;
     }
 
     public void run() {
@@ -136,17 +139,19 @@ public class PubMedBertAnnotator extends Thread{
         ArrayList<Thread> threads = new ArrayList<Thread>();
 
         //we need to multithread  args[2] is number of threads
-        if (args.length==3) {
+        if (args.length==4) {
             int threadCount = Integer.parseInt(args[2]);
 
             List<String> files = listFiles(args[1]);
             int filesProcessed = 0;
 
+            String llm = args[3];
+
             while (filesProcessed < files.size()) {
 
                 if (threads.size()<threadCount) {
                     //System.out.println("processing " + files.get(filesProcessed));
-                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + files.get(filesProcessed)));
+                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + files.get(filesProcessed),llm));
                     threads.add(t);
                     filesProcessed++;
                     t.start();
@@ -193,7 +198,7 @@ public class PubMedBertAnnotator extends Thread{
 
         HashMap<String,ArrayList<String>> retMap = new HashMap<String,ArrayList<String>>();
 
-        HashMap<String, ArrayList<String>> hm = this.hg.runParsed(model, pmid, abstractText + " " + meshTerms);
+        HashMap<String, ArrayList<String>> hm = this.hg.runParsed(model, pmid, abstractText + " " + meshTerms,this.llm);
 
         ArrayList<String> bps = new ArrayList<String>();
         ArrayList<String> bpPos = new ArrayList<String>();
