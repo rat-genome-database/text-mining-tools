@@ -55,6 +55,7 @@ public class PubMedBertAnnotator extends Thread{
                     ArrayList<String> it = new ArrayList<String>();
                     ra.setPmid(toList(PubMedJSoupDoc.pmId(article)));
 
+
                     System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid() + " **************************************************");
                     ra.setDoiS(toList(PubMedJSoupDoc.doi(article)));
                     ra.setTitle(toList(PubMedJSoupDoc.articleTitle(article)));
@@ -71,7 +72,7 @@ public class PubMedBertAnnotator extends Thread{
 
                     ra.setCitation(toList(citation));
                     ra.setMeshTerms(toListOfSizeOne(PubMedJSoupDoc.meshHeadingList(article)));
-                    ra.setpYear(toList(Integer.parseInt(ra.getpDate().get(0).substring(0, 3))));
+                    ra.setpYear(toList(Integer.parseInt(ra.getpDate().get(0).substring(0, 4))));
                     ra.setIssn(toList(PubMedJSoupDoc.issn(article)));
                     ra.setOrganismNCBIId(toList("10090"));
                     ra.setOrganismCommonName(toList("homo sapiens"));
@@ -91,15 +92,16 @@ public class PubMedBertAnnotator extends Thread{
                     ra = this.loadMMO(ra);
                     ra = this.loadMP(ra);
                     ra = this.loadSO(ra);
-                   // ra = this.loadCMO(ra);
                     ra = this.loadHP(ra);
                     ra = this.loadNBO(ra);
+                    ra = this.loadMF(ra);
+                    ra = this.loadOrganism(ra);
+
+                    ra = this.loadCT(ra);
+                   //  ra = this.loadCMO(ra);
                    // ra = this.loadPW(ra);
                    // ra = this.loadXCO(ra);
-                    ra = this.loadMF(ra);
                    // ra = this.loadZFA(ra);
-                    //ra = this.loadOrganism(ra);
-                    ra = this.loadCT(ra);
 
 
                     System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed++ + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
@@ -108,7 +110,7 @@ public class PubMedBertAnnotator extends Thread{
                     fw.write(ra.toJSON());
                     fw.close();
 
-                    //conda run -n ai python genes.py
+                    //conda run -n ai thon genes.py
                     ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
                     Process process = processBuilder.start();
                     process.waitFor();
@@ -400,7 +402,7 @@ public class PubMedBertAnnotator extends Thread{
         String abstractText = ra.getAbstractText().get(0);
 
         if (!abstractText.equals("")) {
-            HashMap<String,ArrayList<String>> modValues= this.runModel("Chebi",ra);
+            HashMap<String,ArrayList<String>> modValues= this.runModel("CHEBI",ra);
             ra.setChebiCount(modValues.get("counts"));
             ra.setChebiTerm(modValues.get("terms"));
             ra.setChebiPos(modValues.get("pos"));
