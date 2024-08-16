@@ -11,7 +11,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,31 +23,33 @@ public class PubMedBertAnnotator extends Thread{
 
     public String rootDir;
     public String articleFile;
+    public String articleDir;
     public HugRunner hg;
     public int threads = 0;
     public String llm;
 
     public static int totalProcessed=0;
 
-    public PubMedBertAnnotator(String rootDir, String articleFile,String llm) {
+    public PubMedBertAnnotator(String rootDir, String articleDir, String articleFile,String llm) {
         this.rootDir = rootDir;
+        this.articleDir = articleDir;
         this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
         this.llm = llm;
     }
 
-    public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
+   /* public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
         this.rootDir = rootDir;
         this.articleFile = articleDir;
         this.hg = new HugRunner(rootDir);
         this.threads=threads;
         this.llm = llm;
     }
-
+*/
     public void run() {
             try {
 
-                ArrayList<String> articles = this.getArticles(this.articleFile);
+                ArrayList<String> articles = this.getArticles(this.articleDir + "/" + this.articleFile);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss");
 
                 System.out.println("Total Articles: " + articles.size());
@@ -131,7 +135,26 @@ public class PubMedBertAnnotator extends Thread{
 
 
                 }
-            }catch(Exception e) {
+
+                //move file to processed
+                System.out.println("move file to processed");
+
+                Path destinationDir = Paths.get(this.articleDir + "/processed");
+                if (!Files.exists(destinationDir)) {
+                    Files.createDirectories(destinationDir);
+                    System.out.println("Directory created successfully.");
+                }
+
+                //Path destinationDir = Paths.get("path/to/destination/");
+                Path sourceFile = Paths.get(this.articleDir + "/" + this.articleFile);
+                // Move the file to the new directory
+                // The REPLACE_EXISTING option will overwrite the file if it exists
+                Files.move(sourceFile, destinationDir.resolve(sourceFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+
+
+
+
+                }catch(Exception e) {
                 e.printStackTrace();
             }
         }
@@ -153,7 +176,7 @@ public class PubMedBertAnnotator extends Thread{
 
                 if (threads.size()<threadCount) {
                     //System.out.println("processing " + files.get(filesProcessed));
-                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] + "/" + files.get(filesProcessed),llm));
+                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm));
                     threads.add(t);
                     filesProcessed++;
                     t.start();
