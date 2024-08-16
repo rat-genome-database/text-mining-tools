@@ -182,14 +182,18 @@ public class PubMedBertAnnotator extends Thread{
                     t.start();
                 }else {
                     for (Thread t: threads) {
-                        if (!t.isAlive()) {
-                            threads.remove(t);
-                            System.out.println("removing thread");
+                        try {
+                            if (!t.isAlive()) {
+                                threads.remove(t);
+                                System.out.println("removing thread");
                                 //t = new Thread(new PubMedBertAnnotator(args[0], fileName));
                                 //threads.add(t);
                                 //t.start();
                             }
-                        }
+
+                    }catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
 
                 }
 
