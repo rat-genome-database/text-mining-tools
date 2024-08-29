@@ -47,12 +47,17 @@ public class PubMedBertAnnotator extends Thread{
     }
 */
     public void run() {
+
+
+
             try {
 
                 ArrayList<String> articles = this.getArticles(this.articleDir + "/" + this.articleFile);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss");
 
                 System.out.println("Total Articles: " + articles.size());
+
+
                 int count = 1;
                 for (String article : articles) {
                     ResearchArticle ra = new ResearchArticle();
@@ -161,7 +166,7 @@ public class PubMedBertAnnotator extends Thread{
 
 
     public static void main (String[] args) throws Exception {
-        ArrayList<Thread> threads = new ArrayList<Thread>();
+        List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
 
         //we need to multithread  args[2] is number of threads
         if (args.length==4) {
@@ -174,28 +179,16 @@ public class PubMedBertAnnotator extends Thread{
 
             while (filesProcessed < files.size()) {
 
-                if (threads.size()<threadCount) {
-                    //System.out.println("processing " + files.get(filesProcessed));
-                    Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm));
-                    threads.add(t);
-                    filesProcessed++;
-                    t.start();
-                }else {
-                    for (Thread t: threads) {
-                        try {
-                            if (!t.isAlive()) {
-                                threads.remove(t);
-                                System.out.println("removing thread");
-                                //t = new Thread(new PubMedBertAnnotator(args[0], fileName));
-                                //threads.add(t);
-                                //t.start();
-                            }
+                PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm);
+                pmb.run();
 
-                    }catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-
-                }
+               // if (threads.size()<threadCount) {
+               //     //System.out.println("processing " + files.get(filesProcessed));
+               //     Thread t = new Thread(new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm));
+               //     threads.add(t);
+               //     filesProcessed++;
+               //     t.start();
+               // }
 
 
             }
