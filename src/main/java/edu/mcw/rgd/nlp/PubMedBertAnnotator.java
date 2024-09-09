@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +30,7 @@ public class PubMedBertAnnotator extends Thread{
     public int threads = 0;
     public String llm;
 
-    public static int totalProcessed=0;
+    public static AtomicInteger totalProcessed=new AtomicInteger(0);
 
     public PubMedBertAnnotator(String rootDir, String articleDir, String articleFile,String llm) {
         this.rootDir = rootDir;
@@ -113,7 +115,7 @@ public class PubMedBertAnnotator extends Thread{
                    // ra = this.loadZFA(ra);
 
 
-                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed++ + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
+                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed.getAndIncrement() + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
 
                     FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
@@ -177,10 +179,16 @@ public class PubMedBertAnnotator extends Thread{
 
             String llm = args[3];
 
-            while (filesProcessed < files.size()) {
-
-                PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm);
+            ForkJoinPool customThreadPool = new ForkJoinPool(Integer.parseInt(args[2]));
+            customThreadPool.submit(() -> files.parallelStream().forEach(file->{
+                System.out.println("starting thread");
+                PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , file,llm);
                 pmb.run();
+
+            })).get();
+
+          //  PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm);
+          //  pmb.run();
 
                // if (threads.size()<threadCount) {
                //     //System.out.println("processing " + files.get(filesProcessed));
@@ -191,7 +199,6 @@ public class PubMedBertAnnotator extends Thread{
                // }
 
 
-            }
 
 
 
