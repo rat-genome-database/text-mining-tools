@@ -47,6 +47,27 @@ public class HugRunner {
             BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/bert/tmp/" + fileId));
             writer.write(text);
             writer.close();
+
+            //get the full text if it exists
+            ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/fetchFullText.py", pubmedId);
+            Process process = processBuilder.start();
+            process.waitFor();
+
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+            String er = "";
+            while ((er = stdError.readLine()) != null) {
+                System.out.println(er);
+            }
+
+            BufferedReader stdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String or = "";
+            while ((or = stdOut.readLine()) != null) {
+                System.out.println(or);
+            }
+
+
         }
 
 
