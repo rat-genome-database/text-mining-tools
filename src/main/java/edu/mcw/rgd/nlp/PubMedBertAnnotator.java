@@ -97,7 +97,7 @@ public class PubMedBertAnnotator extends Thread{
 
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
-                    //ra= this.loadCC(ra);
+                    ra= this.loadCC(ra);
                     ra = this.loadChebi(ra);
                     ra = this.loadMA(ra);
                     ra = this.loadMMO(ra);
