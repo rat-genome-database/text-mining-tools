@@ -52,8 +52,6 @@ public class PubMedBertAnnotator extends Thread{
 */
     public void run() {
 
-
-
             try {
 
                 ArrayList<String> articles = this.getArticles(this.articleDir + "/" + this.articleFile);
@@ -184,7 +182,7 @@ public class PubMedBertAnnotator extends Thread{
             ForkJoinPool customThreadPool = new ForkJoinPool(Integer.parseInt(args[2]));
             customThreadPool.submit(() -> files.parallelStream().forEach(file->{
                 System.out.println("starting thread");
-                PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , file,llm);
+                PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , file,llm, args[4]);
                 pmb.run();
 
             })).get();
