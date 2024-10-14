@@ -29,15 +29,17 @@ public class PubMedBertAnnotator extends Thread{
     public HugRunner hg;
     public int threads = 0;
     public String llm;
+    public String ontomateEndpoint;
 
     public static AtomicInteger totalProcessed=new AtomicInteger(0);
 
-    public PubMedBertAnnotator(String rootDir, String articleDir, String articleFile,String llm) {
+    public PubMedBertAnnotator(String rootDir, String articleDir, String articleFile,String llm, String ontomateEndpoint) {
         this.rootDir = rootDir;
         this.articleDir = articleDir;
         this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
         this.llm = llm;
+        this.ontomateEndpoint = ontomateEndpoint;
     }
 
    /* public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
@@ -122,7 +124,7 @@ public class PubMedBertAnnotator extends Thread{
                     fw.close();
 
                     //conda run -n ai thon genes.py
-                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0));
+                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0), this.ontomateEndpoint);
                     Process process = processBuilder.start();
                     process.waitFor();
 
