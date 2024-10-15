@@ -171,7 +171,7 @@ public class PubMedBertAnnotator extends Thread{
         List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
 
         //we need to multithread  args[2] is number of threads
-        if (args.length==4) {
+        if (args.length==5) {
             int threadCount = Integer.parseInt(args[2]);
 
             List<String> files = listFiles(args[1]);
