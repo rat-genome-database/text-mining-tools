@@ -129,19 +129,19 @@ public class PubMedBertLoader extends Thread{
                 }
 
                 //move file to processed
-                System.out.println("move file to processed");
+              //  System.out.println("move file to processed");
 
-                Path destinationDir = Paths.get(this.articleDir + "/processed");
-                if (!Files.exists(destinationDir)) {
-                    Files.createDirectories(destinationDir);
-                    System.out.println("Directory created successfully.");
-                }
+                //Path destinationDir = Paths.get(this.articleDir + "/processed");
+                //if (!Files.exists(destinationDir)) {
+                 //   Files.createDirectories(destinationDir);
+                 //   System.out.println("Directory created successfully.");
+               // }
 
                 //Path destinationDir = Paths.get("path/to/destination/");
-                Path sourceFile = Paths.get(this.articleDir + "/" + this.articleFile);
+                //Path sourceFile = Paths.get(this.articleDir + "/" + this.articleFile);
                 // Move the file to the new directory
                 // The REPLACE_EXISTING option will overwrite the file if it exists
-                Files.move(sourceFile, destinationDir.resolve(sourceFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+               // Files.move(sourceFile, destinationDir.resolve(sourceFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
 
 
                 }catch(Exception e) {
