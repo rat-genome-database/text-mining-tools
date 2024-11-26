@@ -135,3 +135,12 @@ distributions {
         distributionBaseName = appName
     }
 }
+
+task createDistro(type: Copy) {
+    def zipFile = file('build/distributions/'+appName+'.zip')
+    def outputDir = file("build/install")
+
+    from zipTree(zipFile)
+    into outputDir
+}
+createDistro.dependsOn assembleDist
