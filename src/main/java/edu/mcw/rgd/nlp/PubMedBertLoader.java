@@ -91,10 +91,11 @@ public class PubMedBertLoader extends Thread{
 
                     count++;
 
+                    Connection conn=null;
                     try {
 
                         PubmedDAO pdao = new PubmedDAO();
-                        Connection conn = pdao.getConnection();
+                        conn = pdao.getConnection();
 
                         String query = " INSERT INTO PUBMED_ARTICLE ( " +
                                 " PMID, PMCID, TITLE, DOI, KEYWORDS, ABSTRACT, FULL_TEXT, AFFILIATION, PDate, JDateS, " +
@@ -123,6 +124,13 @@ public class PubMedBertLoader extends Thread{
                         conn.close();
                     }catch (Exception e) {
                         e.printStackTrace();
+
+                    }finally {
+                        try {
+                            conn.close();
+                        }catch(Exception ignored) {
+
+                        }
                     }
 
 
