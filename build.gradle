@@ -1,12 +1,27 @@
+// create a runnable jar with jar dependencies stored in lib subdirectory
+tasks.whenTaskAdded { task ->
+    ['startScripts', 'distTar'].each { String skipTaskName ->
+        if (task.name.contains(skipTaskName)) {
+            task.enabled = false
+        }
+    }
+}
+
 group 'rgd.mcw.edu'
 version ''
 
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = 17
-mainClassName='edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+mainClassName='edu.mcw.rgd.nlp.utils.ncbi.PubMedbertLoader'
 String appName='text-mining-tools'
+
+project.archivesBaseName = appName
+
 repositories {
     mavenCentral()
 }
