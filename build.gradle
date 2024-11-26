@@ -6,7 +6,7 @@ apply plugin: 'application'
 
 sourceCompatibility = 17
 mainClassName='edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator'
-String appName='ontomate-tools-pmc'
+String appName='text-mining-tools'
 repositories {
     mavenCentral()
 }
