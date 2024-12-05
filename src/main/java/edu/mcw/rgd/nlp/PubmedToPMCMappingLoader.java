@@ -37,9 +37,9 @@ public class PubmedToPMCMappingLoader {
             int count=0;
             // Process each row in the CSV file
             while ((line = br.readLine()) != null) {
-                
+
                 try {
-                    System.out.println(line);
+                    //System.out.println(line);
                     String[] values = line.split(",");
 
                     // Map values to query parameters
