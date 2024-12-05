@@ -30,7 +30,6 @@ public class PubmedToPMCMappingLoader {
         ) {
             // Read the CSV file header and skip it
             String line = br.readLine();
-            System.out.println(line);
             if (line == null) {
                 throw new RuntimeException("CSV file is empty!");
             }
@@ -38,7 +37,8 @@ public class PubmedToPMCMappingLoader {
             int count=0;
             // Process each row in the CSV file
             while ((line = br.readLine()) != null) {
-                //System.out.println(line);
+
+                System.out.println(line);
                 String[] values = line.split(",");
 
                 // Map values to query parameters
