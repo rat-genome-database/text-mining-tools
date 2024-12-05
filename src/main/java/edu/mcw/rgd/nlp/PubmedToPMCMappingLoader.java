@@ -37,33 +37,37 @@ public class PubmedToPMCMappingLoader {
             int count=0;
             // Process each row in the CSV file
             while ((line = br.readLine()) != null) {
+                
+                try {
+                    System.out.println(line);
+                    String[] values = line.split(",");
 
-                System.out.println(line);
-                String[] values = line.split(",");
+                    // Map values to query parameters
+                    preparedStatement.setString(1, values[0]); // JournalTitle
+                    preparedStatement.setString(2, values[1]); // ISSN
+                    preparedStatement.setString(3, values[2]); // eISSN
+                    preparedStatement.setString(4, values[3]); // PublicationYear
+                    preparedStatement.setString(5, values[4]); // Volume
+                    preparedStatement.setString(6, values[5]); // Issue
+                    preparedStatement.setString(7, values[6]); // PageStart
+                    preparedStatement.setString(8, values[7]); // DOI
+                    preparedStatement.setString(9, values[8]); // PMCID
+                    preparedStatement.setString(10, values[9]); // PMID
+                    preparedStatement.setString(11, values[10].isEmpty() ? null : values[10]); // ManuscriptId
 
-                // Map values to query parameters
-                preparedStatement.setString(1, values[0]); // JournalTitle
-                preparedStatement.setString(2, values[1]); // ISSN
-                preparedStatement.setString(3, values[2]); // eISSN
-                preparedStatement.setString(4, values[3]); // PublicationYear
-                preparedStatement.setString(5, values[4]); // Volume
-                preparedStatement.setString(6, values[5]); // Issue
-                preparedStatement.setString(7, values[6]); // PageStart
-                preparedStatement.setString(8, values[7]); // DOI
-                preparedStatement.setString(9, values[8]); // PMCID
-                preparedStatement.setString(10, values[9]); // PMID
-                preparedStatement.setString(11, values[10].isEmpty() ? null : values[10]); // ManuscriptId
+                    // Parse ReleaseDate
+                    Date releaseDate = parseDate(values[11]);
+                    preparedStatement.setDate(12, releaseDate); // ReleaseDate
 
-                // Parse ReleaseDate
-                Date releaseDate = parseDate(values[11]);
-                preparedStatement.setDate(12, releaseDate); // ReleaseDate
-
-                preparedStatement.executeUpdate();
-                // Execute the insert
-                //preparedStatement.addBatch();
-                count++;
-                if (count % 1000 == 0) {
-                    //System.out.println(count);
+                    preparedStatement.executeUpdate();
+                    // Execute the insert
+                    //preparedStatement.addBatch();
+                    count++;
+                    if (count % 1000 == 0) {
+                        //System.out.println(count);
+                    }
+                }catch (Exception e) {
+                    System.out.println("COULD NOT INSERT " + line);
                 }
             }
 
