@@ -30,6 +30,7 @@ public class PMCFullTextLoader {
                 Connection conn = gdao.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            System.out.println("walking file tree");
             // Set up the directory and process each file
             Files.walk(Paths.get(directoryPath))
                     .filter(Files::isRegularFile)
@@ -45,8 +46,9 @@ public class PMCFullTextLoader {
 
                             // Set the parameters for the SQL statement
                             stmt.setString(1, fileContent);  // Set FULL_TEXT
-                            stmt.setString(2, pmcid);        // Set PMCID
+                            stmt.setString(2, "PMC" + pmcid);        // Set PMCID
 
+                            System.out.println("Executing update for " + pmcid);
                             // Execute the update
                             stmt.executeUpdate();
                         } catch (IOException | SQLException e) {
