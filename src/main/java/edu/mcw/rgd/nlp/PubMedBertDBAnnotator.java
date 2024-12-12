@@ -35,13 +35,10 @@ public class PubMedBertDBAnnotator extends Thread{
 
     public static AtomicInteger totalProcessed=new AtomicInteger(0);
 
-    public PubMedBertDBAnnotator(String rootDir, String articleDir, String articleFile, String llm, String ontomateEndpoint) {
+    public PubMedBertDBAnnotator(String rootDir,   String llm ) {
         this.rootDir = rootDir;
-        this.articleDir = articleDir;
-        this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
         this.llm = llm;
-        this.ontomateEndpoint = ontomateEndpoint;
     }
 
    /* public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
@@ -149,18 +146,11 @@ public class PubMedBertDBAnnotator extends Thread{
         if (args.length==5) {
             int threadCount = 1;
 
-            List<String> files = listFiles(args[1]);
             int filesProcessed = 0;
 
             String llm = args[3];
-
-            ForkJoinPool customThreadPool = new ForkJoinPool(Integer.parseInt(args[2]));
-            customThreadPool.submit(() -> files.parallelStream().forEach(file->{
-                System.out.println("starting thread");
-                PubMedBertDBAnnotator pmb = new PubMedBertDBAnnotator(args[0], args[1] , file,llm, args[4]);
-                pmb.run();
-
-            })).get();
+            PubMedBertDBAnnotator pmb = new PubMedBertDBAnnotator(args[0], llm);
+            pmb.run();
 
           //  PubMedBertAnnotator pmb = new PubMedBertAnnotator(args[0], args[1] , files.get(filesProcessed),llm);
           //  pmb.run();
