@@ -9,10 +9,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,14 +18,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PubMedBertDBAnnotator extends Thread{
+public class AILoader extends Thread{
 
     public String rootDir;
     public String articleFile;
@@ -41,10 +36,13 @@ public class PubMedBertDBAnnotator extends Thread{
 
     public static AtomicInteger totalProcessed=new AtomicInteger(0);
 
-    public PubMedBertDBAnnotator(String rootDir,   String llm ) {
+    public AILoader(String rootDir, String articleDir, String articleFile, String llm, String ontomateEndpoint) {
         this.rootDir = rootDir;
+        this.articleDir = articleDir;
+        this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
         this.llm = llm;
+        this.ontomateEndpoint = ontomateEndpoint;
     }
 
    /* public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
@@ -72,8 +70,14 @@ public class PubMedBertDBAnnotator extends Thread{
                 int count = 1;
                 while (rs.next()) {
 
-                    String pmid = rs.getString("pmid");
-                    System.out.println(sdf.format(new Date()) + " processing " + pmid + " **************************************************");
+                    ResearchArticle ra = new ResearchArticle();
+                    ArrayList<String> it = new ArrayList<String>();
+                    ra.setPmid(toList(rs.getString("pmid")));
+
+                    System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid() + " **************************************************");
+                    ra.setDoiS(toList(rs.getString("doi")));
+                    ra.setTitle(toList(rs.getString("title")));
+                    ra.setKeywords(toList(rs.getString("keywords")));
 
                     String abstractText = "";
                     Clob clob = rs.getClob("abstract");
@@ -83,67 +87,30 @@ public class PubMedBertDBAnnotator extends Thread{
                         // Now you have the CLOB contents as a String
                     }
 
-                    abstractText = abstractText.replaceAll("\t"," ");
-                    abstractText = abstractText.replaceAll("\r","");
-                    abstractText = abstractText.replaceAll("\n"," ");
-                    String meshTerms = rs.getString("mesh_terms");
+                    ra.setAbstractText(toList(abstractText));
+                    ra.setAffiliation(toList(rs.getString("affiliation")));
+                    //ra.setAuthors(toListOfSizeOne(PubMedJSoupDoc.authorList(article)));
+                    ra.setpDate(toList(rs.getString("pdate").replace("/", "-")));
+                    ra.setjDateS(toList(rs.getString("jdates")));
+
+                    //String citation = PubMedJSoupDoc.journalTitle(article) + "," + PubMedJSoupDoc.pubJournalDate(article) + ", " +
+                    //        PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
+                    //        PubMedJSoupDoc.journalPage(article) ;
+
+                    ra.setCitation(toList(rs.getString("citation")));
+                    ra.setMeshTerms(toList(rs.getString("mesh_terms")));
+                    ra.setpYear(toList(rs.getInt("pyear")));
+                    ra.setIssn(toList(rs.getString("issn")));
+                    ra.setOrganismNCBIId(toList(rs.getString("organism_id")));
+                    ra.setOrganismCommonName(toList(rs.getString("organism_name")));
 
                     count++;
-                    //ra = this.loadGenes(ra);
-
-                    try {
-                        // The API endpoint – adjust as needed
-                        URI uri = URI.create("http://localhost:11434/api/generate");
-
-                        // Create the JSON request body
-                        String json = """
-            {
-              "model": "curatorModel:latest",
-              "prompt": "Extract the <symbol> for any gene discussed in the following text. <text>%s</text> respond with a comma delimited list of <symbols> and no other output. If the text does not related to genes return N"
-            }
-            """.formatted(abstractText);
-
-                        System.out.println("JSON = " + json);
-                        // Build the request
-                        HttpRequest request = HttpRequest.newBuilder()
-                                .uri(uri)
-                                .timeout(Duration.ofSeconds(30))
-                                .header("Content-Type", "application/json")
-                                .POST(HttpRequest.BodyPublishers.ofString(json))
-                                .build();
-
-                        // Create a client
-                        HttpClient client = HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .connectTimeout(Duration.ofSeconds(10))
-                                .build();
-
-                        // Send the request and receive a response
-                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                        // Check status and handle the response
-                        int statusCode = response.statusCode();
-                        String responseBody = response.body();
-
-                        if (statusCode == 200) {
-                            System.out.println("Ollama Response:");
-                            System.out.println(responseBody);
-                        } else {
-                            System.err.println("Error: received status code " + statusCode);
-                            System.err.println("Response body: " + responseBody);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    ra = this.loadGenes(ra);
+                    if (ra.getGene() == null || ra.getGene().size() == 0) {
+                        //System.out.println("No Genes Found");
+                        continue;
                     }
 
-
-                    //HashMap<String, ArrayList<String>> modValues = this.runModel("Gene", pmid, abstractText, meshTerms);
-                    //System.out.println("gene counts = " + modValues.get("counts"));
-                    //System.out.println("gene Terms = " + modValues.get("terms"));
-                    //System.out.println("gene pos = " + modValues.get("pos"));
-                }
-
-                    /*
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
@@ -158,15 +125,14 @@ public class PubMedBertDBAnnotator extends Thread{
                     ra = this.loadOrganism(ra);
 
                     ra = this.loadCT(ra);
-                 */
-
-                //  ra = this.loadCMO(ra);
-                // ra = this.loadPW(ra);
-                // ra = this.loadXCO(ra);
-                // ra = this.loadZFA(ra);
+                   //  ra = this.loadCMO(ra);
+                   // ra = this.loadPW(ra);
+                   // ra = this.loadXCO(ra);
+                   // ra = this.loadZFA(ra);
 
 
-                    /*
+                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed.getAndIncrement() + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
+
                     FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
                     fw.write(ra.toJSON());
                     fw.close();
@@ -189,22 +155,45 @@ public class PubMedBertDBAnnotator extends Thread{
                     while ((err = stdout.readLine()) != null) {
                         System.out.println(err);
                     }
-*/
+
+
+                }
+
+                //move file to processed
+                System.out.println("move file to processed");
+
+                Path destinationDir = Paths.get(this.articleDir + "/processed");
+                if (!Files.exists(destinationDir)) {
+                    Files.createDirectories(destinationDir);
+                    System.out.println("Directory created successfully.");
+                }
+
+                //Path destinationDir = Paths.get("path/to/destination/");
+                Path sourceFile = Paths.get(this.articleDir + "/" + this.articleFile);
+                // Move the file to the new directory
+                // The REPLACE_EXISTING option will overwrite the file if it exists
+                Files.move(sourceFile, destinationDir.resolve(sourceFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+
 
 
 
                 }catch(Exception e) {
-                    e.printStackTrace();
-                }
+                e.printStackTrace();
+            }
         }
 
 
     public static void main (String[] args) throws Exception {
-        List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
+            int threadCount = 1;
 
-            PubMedBertDBAnnotator pmb = new PubMedBertDBAnnotator("hello2", "llm");
+    //public AILoader(String rootDir, String articleDir, String articleFile, String llm, String ontomateEndpoint) {
+
+            //int filesProcessed = 0;
+            //String llm = args[3];
+
+            //AILoader pmb = new AILoader("/Users/jdepons/ai", "not used" , "not used","curatorModel:latest", "not sure");
+            AILoader pmb = new AILoader(args[0], "not used" , "not used",args[1], "not sure");
             pmb.run();
-
     }
 
     public static List<String> listFiles(String dir) {
@@ -212,49 +201,6 @@ public class PubMedBertDBAnnotator extends Thread{
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .collect(Collectors.toList());
-    }
-
-    private HashMap<String,ArrayList<String>> runModel(String model, String pmid, String abstractText, String meshTerms) throws Exception {
-        //System.out.println("runing Model: " + model);
-
-        HashMap<String,ArrayList<String>> retMap = new HashMap<String,ArrayList<String>>();
-
-        HashMap<String, ArrayList<String>> hm = this.hg.runParsed(model, pmid, abstractText + " " + meshTerms,this.llm);
-
-        ArrayList<String> bps = new ArrayList<String>();
-        ArrayList<String> bpPos = new ArrayList<String>();
-        ArrayList<String> bpCounts = new ArrayList<String>();
-        ArrayList<String> ontIds = new ArrayList<String>();
-
-        for (String key : hm.keySet()) {
-            if (key.startsWith("none")) {
-                continue;
-            }
-            if (key.endsWith("-ontId")) continue;
-            ArrayList<String> ontIdList = hm.get(key + "-ontId");
-
-            if (ontIdList.size() > 0) {
-                //System.out.println("adding Ont: " + ontIdList.get(0));
-                ontIds.add(ontIdList.get(0));
-            }else {
-                ontIds.add("DOID:0000004");
-            }
-
-            bps.add(key);
-            //ontIds.add("MP:0006087");
-            bpCounts.add(hm.get(key).size() + "");
-            for (String val : hm.get(key)) {
-                bpPos.add(val);
-            }
-        }
-
-        retMap.put("counts",bpCounts);
-        retMap.put("pos",bpPos);
-        retMap.put("terms",bps);
-        retMap.put("ids",ontIds);
-
-        return retMap;
-
     }
 
 

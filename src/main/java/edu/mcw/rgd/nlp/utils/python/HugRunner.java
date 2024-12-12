@@ -42,6 +42,7 @@ public class HugRunner {
 
     public String runRaw(String type, String pubmedId, String text,String llm) throws Exception {
 
+        System.out.println("root dir = " + rootDir);
         String fileId = pubmedId;
         if (!Files.exists(Paths.get(rootDir + "/bert/tmp/" + fileId))) {
             BufferedWriter writer = new BufferedWriter(new FileWriter(rootDir + "/bert/tmp/" + fileId));
