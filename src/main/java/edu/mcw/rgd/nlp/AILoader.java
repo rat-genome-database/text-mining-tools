@@ -170,7 +170,7 @@ public class AILoader extends Thread{
 
        Connection conn = gdao.getConnection();
 
-       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_count='" + this.listToString(genePos) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
+       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_counts='" + this.listToString(genePos) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
 
        Statement s = conn.createStatement();
 
