@@ -159,28 +159,30 @@ public class AILoader extends Thread{
 
                 }
 
-                //move file to processed
-                System.out.println("move file to processed");
-
-                Path destinationDir = Paths.get(this.articleDir + "/processed");
-                if (!Files.exists(destinationDir)) {
-                    Files.createDirectories(destinationDir);
-                    System.out.println("Directory created successfully.");
-                }
-
-                //Path destinationDir = Paths.get("path/to/destination/");
-                Path sourceFile = Paths.get(this.articleDir + "/" + this.articleFile);
-                // Move the file to the new directory
-                // The REPLACE_EXISTING option will overwrite the file if it exists
-                Files.move(sourceFile, destinationDir.resolve(sourceFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-
-
-
 
                 }catch(Exception e) {
                 e.printStackTrace();
             }
         }
+
+   public void updateGenes(ArrayList<String> genes, ArrayList<String> genePos, ArrayList<String> geneCount, String pmid) throws Exception {
+       GeneDAO gdao = new GeneDAO();
+
+       Connection conn = gdao.getConnection();
+
+       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_count='" + this.listToString(genePos) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
+
+       Statement s = conn.createStatement();
+
+       s.executeUpdate(query);
+
+       conn.close();
+
+   }
+
+   public String listToString(List<String> lst) {
+       return String.join(",", lst);
+   }
 
 
     public static void main (String[] args) throws Exception {
@@ -437,8 +439,6 @@ public class AILoader extends Thread{
         return ra;
     }
 
-
-
     private ResearchArticle loadCC(ResearchArticle ra) throws Exception {
         String abstractText = ra.getAbstractText().get(0);
 
@@ -485,6 +485,7 @@ public class AILoader extends Thread{
     }
 
     private ResearchArticle loadGenes(ResearchArticle ra) throws Exception {
+
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
             HashMap<String,ArrayList<String>> modValues= this.runModel("Gene",ra);
@@ -492,6 +493,7 @@ public class AILoader extends Thread{
             ra.setGene(modValues.get("terms"));
             //System.out.println(modValues.get("terms"));
             ra.setGenePos(modValues.get("pos"));
+            this.updateGenes(modValues.get("counts"),modValues.get("pos"),modValues.get("counts"),ra.getPmid().get(0));
         }
         return ra;
     }
