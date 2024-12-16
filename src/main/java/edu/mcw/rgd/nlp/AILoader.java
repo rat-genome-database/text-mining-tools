@@ -111,6 +111,7 @@ public class AILoader extends Thread{
                         continue;
                     }
 
+                    /*
                     ra = this.loadDO(ra);
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
@@ -125,7 +126,8 @@ public class AILoader extends Thread{
                     ra = this.loadOrganism(ra);
 
                     ra = this.loadCT(ra);
-                   //  ra = this.loadCMO(ra);
+                   */
+                    //  ra = this.loadCMO(ra);
                    // ra = this.loadPW(ra);
                    // ra = this.loadXCO(ra);
                    // ra = this.loadZFA(ra);
