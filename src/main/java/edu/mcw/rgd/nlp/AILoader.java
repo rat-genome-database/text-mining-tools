@@ -119,8 +119,8 @@ public class AILoader extends Thread{
                         continue;
                     }
 
-                    /*
                     ra = this.loadDO(ra);
+                    /*
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
                     ra = this.loadChebi(ra);
@@ -174,6 +174,25 @@ public class AILoader extends Thread{
                 e.printStackTrace();
             }
         }
+
+    public void update(String entity, String terms, String entityPos, String entityCount, String pmid) throws Exception {
+        GeneDAO gdao = new GeneDAO();
+
+        Connection conn = gdao.getConnection();
+
+        String query = "update pubmed_article set ai_" + entity + "_pos='" + entityPos + "', ai_" + entity + "_counts='" + entityCount + "', ai_" + entity + "='" + terms + "' where pmid=" + pmid;
+
+        Statement s = conn.createStatement();
+
+        s.executeUpdate(query);
+
+        conn.close();
+
+    }
+    public void update(String entity, ArrayList<String> terms, ArrayList<String> entityPos, ArrayList<String> entityCount, String pmid) throws Exception {
+        this.update(entity, this.listToString(terms),this.listToString(entityPos),this.listToString(entityCount),pmid);
+    }
+
 
     public void updateGenes(String genes, String genePos, String geneCount, String pmid) throws Exception {
         GeneDAO gdao = new GeneDAO();
@@ -484,6 +503,7 @@ public class AILoader extends Thread{
 
 
     private ResearchArticle loadDO(ResearchArticle ra) throws Exception {
+
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
             HashMap<String,ArrayList<String>> modValues= this.runModel("DO",ra);
@@ -496,6 +516,18 @@ public class AILoader extends Thread{
                 ra.setMpTerm(modValues.get("terms"));
                 ra.setMpPos(modValues.get("pos"));
                 ra.setMpId(modValues.get("ids"));
+
+            if (modValues.get("terms").size() > 20) {
+                this.update("more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
+            }else if (modValues.get("terms").size()==0) {
+                this.update("none", "none", "none", ra.getPmid().get(0));
+            }else {
+
+                this.update(modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
+            }
+
+
+
         }
         return ra;
     }
