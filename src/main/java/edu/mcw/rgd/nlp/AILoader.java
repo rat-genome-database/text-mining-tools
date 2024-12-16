@@ -99,9 +99,9 @@ public class AILoader extends Thread{
                     //        PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
                     //        PubMedJSoupDoc.journalPage(article) ;
 
+                    ra.setMeshTerms(toList(rs.getString("mesh_terms")));
                     /*
                     ra.setCitation(toList(rs.getString("citation")));
-                    ra.setMeshTerms(toList(rs.getString("mesh_terms")));
                     ra.setpYear(toList(rs.getInt("pyear")));
                     ra.setIssn(toList(rs.getString("issn")));
                     ra.setOrganismNCBIId(toList(rs.getString("organism_id")));
