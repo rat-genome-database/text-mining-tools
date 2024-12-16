@@ -13,12 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -110,6 +108,9 @@ public class AILoader extends Thread{
                     count++;
                     System.out.println("about to run load genes");
                     ra = this.loadGenes(ra);
+
+
+
                     System.out.println("ran load genes");
 
 
@@ -118,7 +119,7 @@ public class AILoader extends Thread{
   //                      continue;
     //                }
 
-                    ra = this.loadDO(ra);
+                     ra = this.loadDO(ra);
                     if (true) continue;
                /*
                     ra = this.loadBP(ra);
@@ -193,6 +194,24 @@ public class AILoader extends Thread{
         this.update(entity, this.listToString(terms),this.listToString(entityPos),this.listToString(entityCount),pmid);
     }
 
+    public void update(String entity, String llm, String text, String pmid) throws Exception {
+        GeneDAO gdao = new GeneDAO();
+
+        Connection conn = gdao.getConnection();
+
+        String query = "update pubmed_article set ai_" + entity + "_llm=?, ai_" + entity + "_response=? where pmid=" + pmid;
+
+        PreparedStatement s = conn.prepareStatement(query);
+
+        s.setString(1,llm);
+        s.setString(2,text);
+
+
+        s.executeQuery();
+
+        conn.close();
+
+    }
 
     public void updateGenes(String genes, String genePos, String geneCount, String pmid) throws Exception {
         GeneDAO gdao = new GeneDAO();
@@ -504,56 +523,23 @@ public class AILoader extends Thread{
 
     private ResearchArticle loadDO(ResearchArticle ra) throws Exception {
 
-        System.out.println("About to load disease");
         String abstractText = ra.getAbstractText().get(0);
-        if (!abstractText.equals("")) {
-            HashMap<String,ArrayList<String>> modValues= this.runModel("DO",ra);
-                ra.setRdoCount(modValues.get("counts"));
-                ra.setRdoTerm(modValues.get("terms"));
-                ra.setRdoPos(modValues.get("pos"));
-                ra.setRdoId(modValues.get("ids"));
+        String res = this.hg.runRaw("DO", ra.getPmid().get(0), abstractText, this.llm);
+        System.out.println("abstract = " + abstractText);
+        this.update("disease", llm, res,ra.getPmid().get(0));
 
-                ra.setMpCount(modValues.get("counts"));
-                ra.setMpTerm(modValues.get("terms"));
-                ra.setMpPos(modValues.get("pos"));
-                ra.setMpId(modValues.get("ids"));
-
-            if (modValues.get("terms").size() > 20) {
-                this.update("disease","more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
-            }else if (modValues.get("terms").size()==0) {
-                this.update("disease","none", "none", "none", ra.getPmid().get(0));
-            }else {
-
-                this.update("disease", modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
-            }
-
-
-
-        }
         return ra;
+
+
     }
 
     private ResearchArticle loadGenes(ResearchArticle ra) throws Exception {
 
         String abstractText = ra.getAbstractText().get(0);
-        if (!abstractText.equals("")) {
-            HashMap<String,ArrayList<String>> modValues= this.runModel("Gene",ra);
-            ra.setGeneCount(modValues.get("counts"));
-            ra.setGene(modValues.get("terms"));
-            //System.out.println(modValues.get("terms"));
-            ra.setGenePos(modValues.get("pos"));
+        String res = this.hg.runRaw("Gene", ra.getPmid().get(0), abstractText, this.llm);
+        System.out.println("abstract = " + abstractText);
+        this.update("gene", llm, res,ra.getPmid().get(0));
 
-
-
-            if (modValues.get("terms").size() > 20) {
-                this.updateGenes("more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
-            }else if (modValues.get("terms").size()==0) {
-                this.updateGenes("none", "none", "none", ra.getPmid().get(0));
-            }else {
-
-                this.updateGenes(modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
-            }
-        }
         return ra;
     }
 
