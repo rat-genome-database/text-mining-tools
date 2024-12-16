@@ -62,7 +62,7 @@ public class AILoader extends Thread{
 
                 Connection conn = gdao.getConnection();
 
-                String query = "select * from pubmed_article where pdate='2023-01-01' and ai_genes is not null";
+                String query = "select * from pubmed_article where pdate='2023-01-01' and ai_genes is null";
 
                 Statement s = conn.createStatement();
                 ResultSet rs = s.executeQuery(query);

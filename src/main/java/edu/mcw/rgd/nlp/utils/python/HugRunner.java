@@ -71,6 +71,7 @@ public class HugRunner {
 
         }
 
+        System.out.println("about to run annotate.py");
 
 //        ProcessBuilder processBuilder = new ProcessBuilder("conda", "run", "-n", "ai", "python", rootDir + "/ai/bert/annotate.py", pubmedId, type, rootDir);
         ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bertEnv/bin/python", rootDir + "/bert/annotate.py", pubmedId, type, rootDir,"1",llm);
@@ -91,6 +92,7 @@ public class HugRunner {
             System.out.println(or);
         }
 
+        System.out.println("about to run annotate.py");
 
         String fileData = "";
         try {
