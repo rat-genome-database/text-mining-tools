@@ -112,15 +112,15 @@ public class AILoader extends Thread{
                     ra = this.loadGenes(ra);
                     System.out.println("ran load genes");
 
-                    if (true) continue;
 
-                    if (ra.getGene() == null || ra.getGene().size() == 0) {
+//                    if (ra.getGene() == null || ra.getGene().size() == 0) {
                         //System.out.println("No Genes Found");
-                        continue;
-                    }
+  //                      continue;
+    //                }
 
                     ra = this.loadDO(ra);
-                    /*
+                    if (true) continue;
+               /*
                     ra = this.loadBP(ra);
                     ra= this.loadCC(ra);
                     ra = this.loadChebi(ra);
@@ -504,6 +504,7 @@ public class AILoader extends Thread{
 
     private ResearchArticle loadDO(ResearchArticle ra) throws Exception {
 
+        System.out.println("About to load disease");
         String abstractText = ra.getAbstractText().get(0);
         if (!abstractText.equals("")) {
             HashMap<String,ArrayList<String>> modValues= this.runModel("DO",ra);
@@ -518,12 +519,12 @@ public class AILoader extends Thread{
                 ra.setMpId(modValues.get("ids"));
 
             if (modValues.get("terms").size() > 20) {
-                this.update("more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
+                this.update("disease","more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
             }else if (modValues.get("terms").size()==0) {
-                this.update("none", "none", "none", ra.getPmid().get(0));
+                this.update("disease","none", "none", "none", ra.getPmid().get(0));
             }else {
 
-                this.update(modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
+                this.update("disease", modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
             }
 
 
