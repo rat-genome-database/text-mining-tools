@@ -170,7 +170,7 @@ public class AILoader extends Thread{
 
        Connection conn = gdao.getConnection();
 
-       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_counts='" + this.listToString(genePos) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
+       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_counts='" + this.listToString(geneCount) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
 
        Statement s = conn.createStatement();
 
@@ -493,7 +493,7 @@ public class AILoader extends Thread{
             ra.setGene(modValues.get("terms"));
             //System.out.println(modValues.get("terms"));
             ra.setGenePos(modValues.get("pos"));
-            this.updateGenes(modValues.get("counts"),modValues.get("pos"),modValues.get("counts"),ra.getPmid().get(0));
+            this.updateGenes(modValues.get("terms"),modValues.get("pos"),modValues.get("counts"),ra.getPmid().get(0));
         }
         return ra;
     }
