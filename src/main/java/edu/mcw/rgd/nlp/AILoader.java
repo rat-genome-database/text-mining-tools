@@ -106,6 +106,9 @@ public class AILoader extends Thread{
 
                     count++;
                     ra = this.loadGenes(ra);
+
+                    if (true) continue;
+
                     if (ra.getGene() == null || ra.getGene().size() == 0) {
                         //System.out.println("No Genes Found");
                         continue;
