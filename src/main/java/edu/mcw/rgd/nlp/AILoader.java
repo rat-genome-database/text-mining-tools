@@ -170,6 +170,7 @@ public class AILoader extends Thread{
             }
         }
 
+
    public void updateGenes(ArrayList<String> genes, ArrayList<String> genePos, ArrayList<String> geneCount, String pmid) throws Exception {
        GeneDAO gdao = new GeneDAO();
 
@@ -498,7 +499,13 @@ public class AILoader extends Thread{
             ra.setGene(modValues.get("terms"));
             //System.out.println(modValues.get("terms"));
             ra.setGenePos(modValues.get("pos"));
-            this.updateGenes(modValues.get("terms"),modValues.get("pos"),modValues.get("counts"),ra.getPmid().get(0));
+
+
+            if (modValues.get("terms").size() > 20) {
+                System.out.println("more than 20");
+            }else {
+                this.updateGenes(modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
+            }
         }
         return ra;
     }
