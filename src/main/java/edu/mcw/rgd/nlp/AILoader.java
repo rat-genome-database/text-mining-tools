@@ -75,10 +75,11 @@ public class AILoader extends Thread{
                     ra.setPmid(toList(rs.getString("pmid")));
 
                     System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid() + " **************************************************");
+                    /*
                     ra.setDoiS(toList(rs.getString("doi")));
                     ra.setTitle(toList(rs.getString("title")));
                     ra.setKeywords(toList(rs.getString("keywords")));
-
+*/
                     String abstractText = "";
                     Clob clob = rs.getClob("abstract");
                     if (clob != null) {
@@ -88,24 +89,28 @@ public class AILoader extends Thread{
                     }
 
                     ra.setAbstractText(toList(abstractText));
-                    ra.setAffiliation(toList(rs.getString("affiliation")));
+
+                    //ra.setAffiliation(toList(rs.getString("affiliation")));
                     //ra.setAuthors(toListOfSizeOne(PubMedJSoupDoc.authorList(article)));
-                    ra.setpDate(toList(rs.getString("pdate").replace("/", "-")));
-                    ra.setjDateS(toList(rs.getString("jdates")));
+                    //ra.setpDate(toList(rs.getString("pdate").replace("/", "-")));
+                    //ra.setjDateS(toList(rs.getString("jdates")));
 
                     //String citation = PubMedJSoupDoc.journalTitle(article) + "," + PubMedJSoupDoc.pubJournalDate(article) + ", " +
                     //        PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
                     //        PubMedJSoupDoc.journalPage(article) ;
 
+                    /*
                     ra.setCitation(toList(rs.getString("citation")));
                     ra.setMeshTerms(toList(rs.getString("mesh_terms")));
                     ra.setpYear(toList(rs.getInt("pyear")));
                     ra.setIssn(toList(rs.getString("issn")));
                     ra.setOrganismNCBIId(toList(rs.getString("organism_id")));
                     ra.setOrganismCommonName(toList(rs.getString("organism_name")));
-
+*/
                     count++;
+                    System.out.println("about to run load genes");
                     ra = this.loadGenes(ra);
+                    System.out.println("ran load genes");
 
                     if (true) continue;
 
@@ -170,20 +175,25 @@ public class AILoader extends Thread{
             }
         }
 
+    public void updateGenes(String genes, String genePos, String geneCount, String pmid) throws Exception {
+        GeneDAO gdao = new GeneDAO();
 
-   public void updateGenes(ArrayList<String> genes, ArrayList<String> genePos, ArrayList<String> geneCount, String pmid) throws Exception {
-       GeneDAO gdao = new GeneDAO();
+        Connection conn = gdao.getConnection();
 
-       Connection conn = gdao.getConnection();
+        String query = "update pubmed_article set ai_gene_pos='" + genePos + "', ai_gene_counts='" + geneCount + "', ai_genes='" + genes + "' where pmid=" + pmid;
 
-       String query = "update pubmed_article set ai_gene_pos='" + this.listToString(genePos) + "', ai_gene_counts='" + this.listToString(geneCount) + "', ai_genes='" + this.listToString(genes) + "' where pmid=" + pmid;
+        Statement s = conn.createStatement();
 
-       Statement s = conn.createStatement();
+        s.executeUpdate(query);
 
-       s.executeUpdate(query);
+        conn.close();
 
-       conn.close();
+    }
 
+
+    public void updateGenes(ArrayList<String> genes, ArrayList<String> genePos, ArrayList<String> geneCount, String pmid) throws Exception {
+
+        this.updateGenes(this.listToString(genes),this.listToString(genePos),this.listToString(geneCount),pmid);
    }
 
    public String listToString(List<String> lst) {
@@ -501,9 +511,13 @@ public class AILoader extends Thread{
             ra.setGenePos(modValues.get("pos"));
 
 
+
             if (modValues.get("terms").size() > 20) {
-                System.out.println("more than 20");
+                this.updateGenes("more than 20", "more than 20", "more than 20", ra.getPmid().get(0));
+            }else if (modValues.get("terms").size()==0) {
+                this.updateGenes("none", "none", "none", ra.getPmid().get(0));
             }else {
+
                 this.updateGenes(modValues.get("terms"), modValues.get("pos"), modValues.get("counts"), ra.getPmid().get(0));
             }
         }
