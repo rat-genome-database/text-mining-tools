@@ -204,6 +204,13 @@ public class AILoader extends Thread{
             //int filesProcessed = 0;
             //String llm = args[3];
 
+        if (true) {
+            AILoader pmb = new AILoader(args[0], "not used" , "not used",args[1], "not sure", "2009-09-01");
+            pmb.run();
+
+        }
+
+
         GeneDAO gdao = new GeneDAO();
         Connection conn = gdao.getConnection();
 
