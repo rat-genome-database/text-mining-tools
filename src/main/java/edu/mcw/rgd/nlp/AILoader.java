@@ -5,15 +5,9 @@ import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.nlp.datamodel.ResearchArticle;
 import edu.mcw.rgd.nlp.utils.ncbi.PubMedJSoupDoc;
 import edu.mcw.rgd.nlp.utils.python.HugRunner;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
