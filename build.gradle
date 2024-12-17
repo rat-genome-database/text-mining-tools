@@ -35,6 +35,13 @@ dependencies {
 
     implementation "dev.langchain4j:langchain4j-ollama:0.36.2"
 
+    // define a BOM and its version
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.0"))
+
+    // define any required OkHttp artifacts without version
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
+    
     implementation ('org.apache.commons:commons-dbcp2:2.10.0') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
