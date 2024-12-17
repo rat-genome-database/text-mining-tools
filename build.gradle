@@ -27,6 +27,9 @@ repositories {
 }
 
 dependencies {
+        implementation "dev.langchain4j:langchain4j-ollama:0.36.2"
+
+
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     implementation fileTree(dir: 'lib', include: '*.jar')
     implementation group: 'org.apache.james', name: 'apache-mime4j-core', version: '0.8.2'

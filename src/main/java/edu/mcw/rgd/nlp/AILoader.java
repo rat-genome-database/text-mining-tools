@@ -1,5 +1,6 @@
 package edu.mcw.rgd.nlp;
 
+import dev.langchain4j.model.ollama.OllamaChatModel;
 import edu.mcw.rgd.dao.impl.GeneDAO;
 import edu.mcw.rgd.nlp.datamodel.ResearchArticle;
 import edu.mcw.rgd.nlp.utils.ncbi.PubMedJSoupDoc;
@@ -17,7 +18,9 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,28 +34,23 @@ public class AILoader extends Thread{
     public int threads = 0;
     public String llm;
     public String ontomateEndpoint;
+    public String pdate;
 
     public static AtomicInteger totalProcessed=new AtomicInteger(0);
 
-    public AILoader(String rootDir, String articleDir, String articleFile, String llm, String ontomateEndpoint) {
+    public AILoader(String rootDir, String articleDir, String articleFile, String llm, String ontomateEndpoint, String pdate) {
         this.rootDir = rootDir;
         this.articleDir = articleDir;
         this.articleFile = articleFile;
         this.hg = new HugRunner(rootDir);
         this.llm = llm;
         this.ontomateEndpoint = ontomateEndpoint;
+        this.pdate = pdate;
     }
 
-   /* public PubMedBertAnnotator(String rootDir, String articleDir, int threads, String llm) {
-        this.rootDir = rootDir;
-        this.articleFile = articleDir;
-        this.hg = new HugRunner(rootDir);
-        this.threads=threads;
-        this.llm = llm;
-    }
-*/
     public void run() {
 
+            System.out.println("running for " + this.pdate);
             try {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss");
@@ -60,7 +58,7 @@ public class AILoader extends Thread{
 
                 Connection conn = gdao.getConnection();
 
-                String query = "select * from pubmed_article where pdate='2023-01-01' and ai_genes is null";
+                String query = "select * from pubmed_article where pdate='" + this.pdate + "' and ai_genes is null";
 
                 Statement s = conn.createStatement();
                 ResultSet rs = s.executeQuery(query);
@@ -70,14 +68,13 @@ public class AILoader extends Thread{
 
                     ResearchArticle ra = new ResearchArticle();
                     ArrayList<String> it = new ArrayList<String>();
+
+                    String pmid = rs.getString("pmid");
+
                     ra.setPmid(toList(rs.getString("pmid")));
 
+
                     System.out.println(sdf.format(new Date())+ " processing " + ra.getPmid() + " **************************************************");
-                    /*
-                    ra.setDoiS(toList(rs.getString("doi")));
-                    ra.setTitle(toList(rs.getString("title")));
-                    ra.setKeywords(toList(rs.getString("keywords")));
-*/
                     String abstractText = "";
                     Clob clob = rs.getClob("abstract");
                     if (clob != null) {
@@ -88,84 +85,44 @@ public class AILoader extends Thread{
 
                     ra.setAbstractText(toList(abstractText));
 
-                    //ra.setAffiliation(toList(rs.getString("affiliation")));
-                    //ra.setAuthors(toListOfSizeOne(PubMedJSoupDoc.authorList(article)));
-                    //ra.setpDate(toList(rs.getString("pdate").replace("/", "-")));
-                    //ra.setjDateS(toList(rs.getString("jdates")));
-
-                    //String citation = PubMedJSoupDoc.journalTitle(article) + "," + PubMedJSoupDoc.pubJournalDate(article) + ", " +
-                    //        PubMedJSoupDoc.journalVolume(article) + "(" + PubMedJSoupDoc.journalIssue(article) + "): " +
-                    //        PubMedJSoupDoc.journalPage(article) ;
 
                     ra.setMeshTerms(toList(rs.getString("mesh_terms")));
-                    /*
-                    ra.setCitation(toList(rs.getString("citation")));
-                    ra.setpYear(toList(rs.getInt("pyear")));
-                    ra.setIssn(toList(rs.getString("issn")));
-                    ra.setOrganismNCBIId(toList(rs.getString("organism_id")));
-                    ra.setOrganismCommonName(toList(rs.getString("organism_name")));
-*/
                     count++;
-                    System.out.println("about to run load genes");
-                    ra = this.loadGenes(ra);
 
+                    OllamaChatModel model = OllamaChatModel.builder()
+                            .baseUrl("http://localhost:11434") // Ollama's default port
+                            .modelName("curatorModel") // Replace with your downloaded model
+                            .build();
 
+                    String prompt = "Extract the <symbol> for any gene discussed in the following abstract. <abstract>" + abstractText + "</abstract> respond with a comma delimited list of <symbol> and no other output";
 
-                    System.out.println("ran load genes");
+                    String response = model.generate(prompt);
+                    System.out.println(response);
+                    this.update("gene",llm,response,pmid);
+                    if (response.equals("none")) continue;
 
+                    prompt = "Extract all <disease terms> for any disease explicitly or implicitly discussed in the following abstract. <abstract>" + abstractText + "</abstract> Respond with a comma delimited list of <disease terms> and no other output. If the abstact is unrelated to any disease, return NA";
 
-//                    if (ra.getGene() == null || ra.getGene().size() == 0) {
-                        //System.out.println("No Genes Found");
-  //                      continue;
-    //                }
+                    response = model.generate(prompt);
 
-                     ra = this.loadDO(ra);
-                    if (true) continue;
-               /*
-                    ra = this.loadBP(ra);
-                    ra= this.loadCC(ra);
-                    ra = this.loadChebi(ra);
-                    ra = this.loadMA(ra);
-                    ra = this.loadMMO(ra);
-                    ra = this.loadMP(ra);
-                    ra = this.loadSO(ra);
-                    ra = this.loadHP(ra);
-                    ra = this.loadNBO(ra);
-                    ra = this.loadMF(ra);
-                    ra = this.loadOrganism(ra);
+                    this.update("disease",llm,response,pmid);
 
-                    ra = this.loadCT(ra);
-                   */
-                    //  ra = this.loadCMO(ra);
-                   // ra = this.loadPW(ra);
-                   // ra = this.loadXCO(ra);
-                   // ra = this.loadZFA(ra);
+                    prompt = "Extract all <rat strains> from the following abstract. <abstract>" + abstractText + "</abstract> Respond with a comma delimited list of <rat strains> and no other output. If the abstact is unrelated to rat strains, return NA";
 
+                    response = model.generate(prompt);
 
-                    System.out.println(sdf.format(new Date()) + " COMPLETED " + totalProcessed.getAndIncrement() + " " + count  + ". PMID:" + ra.getPmid().get(0) + " (" + ra.getTitle() + ")"  + " **************************************************");
+                    this.update("strain",llm,response,pmid);
 
-                    FileWriter fw = new FileWriter(rootDir + "/bert/pubmed_scripts/pubmed-output/" + ra.getPmid().get(0));
-                    fw.write(ra.toJSON());
-                    fw.close();
+                    //model = OllamaChatModel.builder()
+                    //        .baseUrl("http://localhost:11434") // Ollama's default port
+                    //        .modelName("llama3") // Replace with your downloaded model
+                    //        .build();
 
-                    //conda run -n ai thon genes.py
-                    ProcessBuilder processBuilder = new ProcessBuilder(rootDir + "/bert/pubmed_scripts/run_indexer_for_pmid.sh", ra.getPmid().get(0), this.ontomateEndpoint);
-                    Process process = processBuilder.start();
-                    process.waitFor();
+                    //prompt = "I am a curator trying to make disease to gene annotations. List out any possible gene to disease annotations in the following abstract and state your reasoning.  If you do not fine disease to gene associations respond with 'none found' and do not give your reasoning.  <abstract>" + abstractText + "</abstract>";
+                    //response = model.generate(prompt);
 
-                    BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    //System.out.println("response annotation = " + response);
 
-                    String ou = "";
-                    while ((ou = stdout.readLine()) != null) {
-                         System.out.println(ou);
-                    }
-
-                    BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-                    String err = "";
-                    while ((err = stdout.readLine()) != null) {
-                        System.out.println(err);
-                    }
 
 
                 }
@@ -247,9 +204,51 @@ public class AILoader extends Thread{
             //int filesProcessed = 0;
             //String llm = args[3];
 
+        GeneDAO gdao = new GeneDAO();
+        Connection conn = gdao.getConnection();
+
+        String query = "select distinct pdate from pubmed_article";
+
+        Statement s = conn.createStatement();
+
+        ResultSet rs = s.executeQuery(query);
+
+        // Create a ForkJoinPool with parallelism level of 4
+        ForkJoinPool pool = new ForkJoinPool(3);
+
+        // List to hold tasks
+        List<Callable<Void>> tasks = new ArrayList<>();
+
+
+        while (rs.next()) {
+
+            AILoader pmb = new AILoader(args[0], "not used" , "not used",args[1], "not sure", rs.getString("pdate"));
+            // Add a task that will run the AILoader when executed
+            tasks.add(() -> {
+                pmb.run();
+                return null;
+            });
+        }
+
+        // Invoke all tasks in parallel
+        // This will block until all tasks are completed.
+        List<Future<Void>> results = pool.invokeAll(tasks);
+
+        // Check for exceptions if needed
+        for (Future<Void> f : results) {
+            try {
+                f.get(); // This will throw if any task encountered an exception
+            } catch (Exception e) {
+                e.printStackTrace(); // Handle exceptions from tasks
+            }
+        }
+
+
+        conn.close();
+
+
             //AILoader pmb = new AILoader("/Users/jdepons/ai", "not used" , "not used","curatorModel:latest", "not sure");
-            AILoader pmb = new AILoader(args[0], "not used" , "not used",args[1], "not sure");
-            pmb.run();
+
     }
 
     public static List<String> listFiles(String dir) {
