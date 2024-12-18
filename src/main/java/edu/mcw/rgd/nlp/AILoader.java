@@ -207,7 +207,7 @@ public class AILoader extends Thread{
         GeneDAO gdao = new GeneDAO();
         Connection conn = gdao.getConnection();
 
-        String query = "select distinct pdate from pubmed_article";
+        String query = "select distinct pdate from pubmed_article where ai_gene_response is not null";
 
         Statement s = conn.createStatement();
 
