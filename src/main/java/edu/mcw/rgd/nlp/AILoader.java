@@ -123,8 +123,8 @@ public class AILoader extends Thread{
 
 
                 }catch(Exception e) {
-                e.printStackTrace();
-            }
+                     e.printStackTrace();
+                }
         }
 
     public void update(String entity, String terms, String entityPos, String entityCount, String pmid) throws Exception {
@@ -232,11 +232,9 @@ public class AILoader extends Thread{
             });
         }
 
-        // Invoke all tasks in parallel
-        // This will block until all tasks are completed.
+        /*
         List<Future<Void>> results = pool.invokeAll(tasks);
 
-        // Check for exceptions if needed
         for (Future<Void> f : results) {
             try {
                 f.get(); // This will throw if any task encountered an exception
@@ -244,7 +242,7 @@ public class AILoader extends Thread{
                 e.printStackTrace(); // Handle exceptions from tasks
             }
         }
-
+*/
 
         conn.close();
 
