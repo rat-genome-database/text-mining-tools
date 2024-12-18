@@ -213,7 +213,7 @@ public class AILoader extends Thread{
 
         ResultSet rs = s.executeQuery(query);
 
-        ExecutorService pool = Executors.newFixedThreadPool(5); // 5 concurrent tasks max
+        ExecutorService pool = Executors.newFixedThreadPool(3); // 5 concurrent tasks max
         List<Callable<Void>> tasks = new ArrayList<>();
 
         while (rs.next()) {
