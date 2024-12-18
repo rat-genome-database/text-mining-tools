@@ -198,12 +198,13 @@ public class AILoader extends Thread{
             //int filesProcessed = 0;
             //String llm = args[3];
 
+        /*
         if (true) {
             AILoader pmb = new AILoader(args[0], "not used" , "not used",args[1], "not sure", "2009-09-01");
             pmb.run();
 
         }
-
+*/
 
         GeneDAO gdao = new GeneDAO();
         Connection conn = gdao.getConnection();
@@ -215,7 +216,7 @@ public class AILoader extends Thread{
         ResultSet rs = s.executeQuery(query);
 
         // Create a ForkJoinPool with parallelism level of 4
-        ForkJoinPool pool = new ForkJoinPool(3);
+        ForkJoinPool pool = new ForkJoinPool(5);
 
         // List to hold tasks
         List<Callable<Void>> tasks = new ArrayList<>();
