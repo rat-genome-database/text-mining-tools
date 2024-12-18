@@ -12,9 +12,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,8 +121,8 @@ public class AILoader extends Thread{
 
 
                 }catch(Exception e) {
-                     e.printStackTrace();
-                }
+                e.printStackTrace();
+            }
         }
 
     public void update(String entity, String terms, String entityPos, String entityCount, String pmid) throws Exception {
@@ -215,12 +213,8 @@ public class AILoader extends Thread{
 
         ResultSet rs = s.executeQuery(query);
 
-        // Create a ForkJoinPool with parallelism level of 4
-        ForkJoinPool pool = new ForkJoinPool(5);
-
-        // List to hold tasks
+        ExecutorService pool = Executors.newFixedThreadPool(5); // 5 concurrent tasks max
         List<Callable<Void>> tasks = new ArrayList<>();
-
 
         while (rs.next()) {
 
@@ -232,9 +226,11 @@ public class AILoader extends Thread{
             });
         }
 
-        /*
+        // Invoke all tasks in parallel
+        // This will block until all tasks are completed.
         List<Future<Void>> results = pool.invokeAll(tasks);
 
+        // Check for exceptions if needed
         for (Future<Void> f : results) {
             try {
                 f.get(); // This will throw if any task encountered an exception
@@ -242,7 +238,7 @@ public class AILoader extends Thread{
                 e.printStackTrace(); // Handle exceptions from tasks
             }
         }
-*/
+
 
         conn.close();
 
