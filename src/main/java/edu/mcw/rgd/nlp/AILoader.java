@@ -184,7 +184,7 @@ public class AILoader extends Thread{
    }
 
    public String listToString(List<String> lst) {
-       return String.join(",", lst);
+       return String.join("||", lst);
    }
 
 
