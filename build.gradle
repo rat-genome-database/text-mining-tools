@@ -8,6 +8,12 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName='edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator'
 String appName='ontomate-tools'
+
+// hack for handling duplicate jars
+tasks.withType(Copy) {
+    duplicatesStrategy = duplicatesStrategy.INCLUDE
+}
+
 repositories {
     mavenCentral()
 }
@@ -110,7 +116,7 @@ dependencies {
 
 jar {
     zip64=true
-    //baseName = appName
+    duplicatesStrategy = duplicatesStrategy.INCLUDE
     manifest {
         attributes 'Built-By': System.getProperty('user.name'),
                 'Built-Date': new Date(),
@@ -121,12 +127,6 @@ jar {
         configurations.runtimeClasspath.collect{it.isDirectory()?it:zipTree(it)}
     }
 
-}
-
-allprojects {
-    tasks.withType(Copy).all {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
 }
 
 distributions {
