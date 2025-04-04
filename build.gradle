@@ -123,9 +123,14 @@ jar {
 
 }
 
+allprojects {
+    tasks.withType(Copy).all {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+}
+
 distributions {
     main {
         distributionBaseName = appName
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }
