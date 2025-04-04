@@ -126,5 +126,6 @@ jar {
 distributions {
     main {
         distributionBaseName = appName
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }
