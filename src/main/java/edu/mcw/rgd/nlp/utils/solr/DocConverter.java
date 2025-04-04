@@ -100,8 +100,11 @@ public static void convertOntoTsv(String[] args) {
 			ontoId = fieldValues[0];
 			ontoId_s = ontoId.substring(ontoId.indexOf(":")+1);
 			ontoId_lower = ontoId.toLowerCase();
-			Long id_l = Long.parseLong(ontoId_s);
-			ontoId_l =  id_l.toString();
+			try {
+				Long id_l = Long.parseLong(ontoId_s);
+				ontoId_l = id_l.toString();
+			} catch( NumberFormatException ignore ) {
+			}
 			ontoCat = fieldValues[1];
 			ontoTerm = fieldValues[2];
 			ontoDef = fieldValues[3];
