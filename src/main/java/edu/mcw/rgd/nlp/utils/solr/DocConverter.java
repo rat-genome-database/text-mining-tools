@@ -104,6 +104,7 @@ public static void convertOntoTsv(String[] args) {
 				Long id_l = Long.parseLong(ontoId_s);
 				ontoId_l = id_l.toString();
 			} catch( NumberFormatException ignore ) {
+				ontoId_l = "0";
 			}
 			ontoCat = fieldValues[1];
 			ontoTerm = fieldValues[2];
