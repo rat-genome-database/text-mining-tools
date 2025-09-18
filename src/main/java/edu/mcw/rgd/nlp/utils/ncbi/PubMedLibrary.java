@@ -260,7 +260,8 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 			solr_doc.addField("pmid", pmidStr);
 			solr_doc.addField("title", art.articleTitle);
-			solr_doc.addField("abstract", art.articleAbstract);
+			if(art.articleAbstract!=null)
+			solr_doc.addField("abstract", cleanText(art.articleAbstract));
 			solr_doc.addField("p_date", art.articlePubDate);
 			solr_doc.addField("j_date_s", art.articleJournalDate);
 			solr_doc.addField("authors", art.articleAuthors);
@@ -424,7 +425,29 @@ public class PubMedLibrary extends LibraryBase implements Library {
                 while (itr.hasNext()) {
                     field = itr.next();
                     key = field.getName();
-                    obj.put(key, solr_doc.getFieldValues(key));
+//                    obj.put(key, solr_doc.getFieldValues(key));
+					Collection<Object> values = solr_doc.getFieldValues(key);
+					if (values != null) {
+						if (values.size() == 1) {
+							Object value = values.iterator().next();
+							if (value instanceof String) {
+								obj.put(key, cleanText((String) value)); // Clean before inserting
+							} else {
+								obj.put(key, value);
+							}
+						} else {
+							// Clean each value in the list
+							JSONArray arr = new JSONArray();
+							for (Object val : values) {
+								if (val instanceof String) {
+									arr.put(cleanText((String) val));
+								} else {
+									arr.put(val);
+								}
+							}
+							obj.put(key, arr);
+						}
+					}
                 }
                 jsonObjects.add(obj);
 
@@ -439,6 +462,20 @@ public class PubMedLibrary extends LibraryBase implements Library {
 		}
 
 		return true;
+	}
+	public static String cleanText(String text) {
+		if (text == null) return null;
+
+		// Replace line breaks and Unicode line/paragraph separators with a space
+		text = text.replaceAll("[\\n\\r\\u2028\\u2029]+", " ");
+
+		// Replace superscripts commonly found in chemical symbols
+		text = text.replace("²", "2").replace("³", "3").replace("⁺", "+");
+
+		// Strip any other control characters
+		text = text.replaceAll("\\p{C}", " ");
+
+		return text.trim();
 	}
 	public static Boolean indexPreprintArticle(Result result,HashMap<String,List<String>> data) throws Exception {
 		ArticleDAO art = new ArticleDAO();
@@ -963,7 +1000,6 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			addMaptoDoc(solr_doc, organism_map, "organism_ncbi_id",
 					"organism_term", "organism_count", "organism_pos");
 			for(String name: organism_common){
-				System.out.println("COMMON NAME: "+ name);
 				solr_doc.addField("organism_common_name",name );
 			}
 
