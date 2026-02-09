@@ -8,11 +8,12 @@ import java.util.*;
 
 import edu.mcw.rgd.common.utils.FileList;
 import edu.mcw.rgd.database.ncbi.pubmed.PmcArticleDAO;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.hadoop.hbase.client.Result;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tartarus.snowball.Stemmer;
 
@@ -261,7 +262,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 			solr_doc.addField("pmid", pmidStr);
 			solr_doc.addField("title", art.articleTitle);
 			if(art.articleAbstract!=null)
-			solr_doc.addField("abstract", cleanText(art.articleAbstract));
+			solr_doc.addField("abstract", TextSanitizer.cleanText(art.articleAbstract));
 			solr_doc.addField("p_date", art.articlePubDate);
 			solr_doc.addField("j_date_s", art.articleJournalDate);
 			solr_doc.addField("authors", art.articleAuthors);
@@ -431,7 +432,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 						if (values.size() == 1) {
 							Object value = values.iterator().next();
 							if (value instanceof String) {
-								obj.put(key, cleanText((String) value)); // Clean before inserting
+								obj.put(key, TextSanitizer.cleanText((String) value)); // Clean before inserting
 							} else {
 								obj.put(key, value);
 							}
@@ -440,7 +441,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 							JSONArray arr = new JSONArray();
 							for (Object val : values) {
 								if (val instanceof String) {
-									arr.put(cleanText((String) val));
+									arr.put(TextSanitizer.cleanText((String) val));
 								} else {
 									arr.put(val);
 								}
@@ -463,20 +464,7 @@ public class PubMedLibrary extends LibraryBase implements Library {
 
 		return true;
 	}
-	public static String cleanText(String text) {
-		if (text == null) return null;
 
-		// Replace line breaks and Unicode line/paragraph separators with a space
-		text = text.replaceAll("[\\n\\r\\u2028\\u2029]+", " ");
-
-		// Replace superscripts commonly found in chemical symbols
-		text = text.replace("²", "2").replace("³", "3").replace("⁺", "+");
-
-		// Strip any other control characters
-		text = text.replaceAll("\\p{C}", " ");
-
-		return text.trim();
-	}
 	public static Boolean indexPreprintArticle(Result result,HashMap<String,List<String>> data) throws Exception {
 		ArticleDAO art = new ArticleDAO();
 		Boolean indexable = true;
@@ -1060,6 +1048,51 @@ public class PubMedLibrary extends LibraryBase implements Library {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
+		String abstractText="1. Environ Toxicol. 2025 Aug 4. doi: 10.1002/tox.24559. Online ahead of print.\n" +
+				"\n" +
+				"Cadmium-Induced Mitochondrial and MAMs Dysregulation in Rat Testis: The \n" +
+				"Protective Role of D-Aspartate.\n" +
+				"\n" +
+				"Latino D(1), Falvo S(1), Venditti M(2), Santillo A(1), Grillo G(1), Chieffi \n" +
+				"Baccari G(1), Messaoudi I(3), Di Fiore MM(1).\n" +
+				"\n" +
+				"Author information:\n" +
+				"(1)Department of Environmental, Biological and Pharmaceutical Sciences and \n" +
+				"Technologies, University of Campania \"Luigi Vanvitelli\", Caserta, Italy.\n" +
+				"(2)Department of Experimental Medicine, Section Human Physiology and Integrated \n" +
+				"Biological Functions, University of Campania \"Luigi Vanvitelli\", Napoli, Italy.\n" +
+				"(3)3LR11ES41: Génetique, Biodiversité et Valorisation des Bioressources, \n" +
+				"Institut Supérieur de Biotechnologie, Université de Monastir, Monastir, Tunisia.\n" +
+				"\n" +
+				"Cadmium (Cd), a heavy metal, disrupts the structure of seminiferous tubules and \n" +
+				"induces cell death at multiple stages of sperm development. Cd also impairs \n" +
+				"Leydig cells (LCs), resulting in reduced serum testosterone (T) levels. This \n" +
+				"study primarily examined the impact of Cd on the mitochondrial compartment and \n" +
+				"mitochondrial-associated endoplasmic reticulum membranes (MAMs) in rat testis. \n" +
+				"Additionally, the potential of D-aspartate (D-Asp) to mitigate Cd-induced \n" +
+				"effects on steroidogenesis and spermatogenesis was assessed by administering \n" +
+				"D-Asp simultaneously or preventively with Cd. The findings demonstrated that Cd \n" +
+				"exerts reprotoxicity by affecting the mitochondrial compartment and MAMs, \n" +
+				"evidenced by an imbalance in mitochondrial dynamics, impaired mitophagy pathway, \n" +
+				"and downregulated mitochondrial biogenesis. Cd exposure also reduced lipid \n" +
+				"transfer-related factor expression and increased ER stress. Moreover, elevated \n" +
+				"levels of Ca2+ transfer-related proteins, indicative of perturbed Ca2+ \n" +
+				"homeostasis, may be associated with enhanced oxidative stress and apoptosis, \n" +
+				"which are known effects of Cd. Immunofluorescent analysis revealed that the \n" +
+				"Cd-induced mitochondrial and MAMs damage was prominent in LCs, spermatocytes, \n" +
+				"and spermatids, confirming the metal's adverse effects on steroidogenesis and \n" +
+				"spermatogenesis. Conversely, co-administration or preventive administration of \n" +
+				"D-Asp with Cd preserved mitochondrial homeostasis and functional ER-mitochondria \n" +
+				"interactions. In conclusion, the study offers novel insights into the cellular \n" +
+				"mechanisms underlying Cd-induced reprotoxicity. Importantly, it highlights the \n" +
+				"efficacy of D-Asp in preventing or counteracting testicular damage caused by Cd \n" +
+				"by enhancing mitochondrial and MAMs functionality.\n" +
+				"\n" +
+				"© 2025 The Author(s). Environmental Toxicology published by Wiley Periodicals \n" +
+				"LLC.\n" +
+				"\n" +
+				"DOI: 10.1002/tox.24559\n" +
+				"PMID: 40757823";
+		System.out.println(TextSanitizer.cleanText(abstractText));
 	}
 }

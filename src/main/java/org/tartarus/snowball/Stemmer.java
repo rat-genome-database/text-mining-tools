@@ -4,7 +4,8 @@ package org.tartarus.snowball;
 import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.filters.StringInputStream;
 import org.tartarus.snowball.ext.englishStemmer;
 
