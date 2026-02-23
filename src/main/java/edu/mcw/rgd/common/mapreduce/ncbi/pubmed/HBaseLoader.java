@@ -26,8 +26,8 @@ public class HBaseLoader {
     public static class XMLMapper
             extends Mapper<Object, Text, ImmutableBytesWritable, Mutation> {
 
-        private static Pattern articlePattern = Pattern.compile("(<ns1:PubmedArticle>.+?</ns1:PubmedArticle>)");
-        private static Pattern pmidPattern = Pattern.compile("<ns1:PMID.+?>(.+?)</ns1:PMID>");
+        private static Pattern articlePattern = Pattern.compile("(<(?:ns1:)?PubmedArticle>.+?</(?:ns1:)?PubmedArticle>)");
+        private static Pattern pmidPattern = Pattern.compile("<(?:ns1:)?PMID.+?>(.+?)</(?:ns1:)?PMID>");
         private static byte[] colFamily = Bytes.toBytes("d");
         private static byte[] col = Bytes.toBytes("x");
         public static int x = 1;

@@ -18,6 +18,11 @@ import org.jsoup.select.Elements;
 
 public class PubMedJSoupDoc {
 
+	/** Strip ns1: namespace prefix from XML tags so both old (ns1:) and new (plain) PubMed XML parse identically. */
+	private static String stripNs1(String text) {
+		return text.replace("<ns1:", "<").replace("</ns1:", "</");
+	}
+
 	public static void main(String[] args) {
 	//	String text=ReadWrite.read("data/pubmed_result.xml");
 		String text="<ns1:PubmedArticle><ns1:MedlineCitation Status=\"Publisher\" Owner=\"NLM\"><ns1:PMID Version=\"1\">30970238</ns1:PMID><ns1:DateRevised><ns1:Year>2019</ns1:Year><ns1:Month>04</ns1:Month><ns1:Day>10</ns1:Day></ns1:DateRevised><ns1:Article PubModel=\"Print-Electronic\"><ns1:Journal><ns1:ISSN IssnType=\"Electronic\">1090-2422</ns1:ISSN><ns1:JournalIssue CitedMedium=\"Internet\"><ns1:PubDate><ns1:Year>2019</ns1:Year><ns1:Month>Apr</ns1:Month><ns1:Day>07</ns1:Day></ns1:PubDate></ns1:JournalIssue><ns1:Title>Experimental cell research</ns1:Title><ns1:ISOAbbreviation>Exp. Cell Res.</ns1:ISOAbbreviation></ns1:Journal><ns1:ArticleTitle>Hypoxia-induced disruption of neural vascular barrier is mediated by the intracellular induction of Fe(II) ion.</ns1:ArticleTitle><ns1:ELocationID EIdType=\"pii\" ValidYN=\"Y\">S0014-4827(19)30153-3</ns1:ELocationID><ns1:ELocationID EIdType=\"doi\" ValidYN=\"Y\">10.1016/j.yexcr.2019.04.003</ns1:ELocationID><ns1:Abstract><ns1:AbstractText>Neural vascular barrier maintains the optimal tissue microenvironment of central nervous system in which neural cells can function normally. In various neural diseases, the decrease in oxygen concentration, hypoxia, of affected tissues is known to accelerate the disease progression through disruption of neural vascular barrier. Therefore, the clarification of mechanisms underlying hypoxia-induced disruption of neural vascular barrier would definitely lead to the establishment of new effective therapies for intractable neural diseases. In the present study, we first found that hypoxia disrupts neural vascular barrier through pathways independent of HIF-1α and HIF-2α. Then, with a specific fluorescence probe for ferrous, Fe(II) ion, we have obtained the interesting data showing that hypoxia increased the intracellular level of Fe(II) ion in endothelial cells of our in vitro model for neural vascular barrier, and that hypoxia-induced disruption of neural vascular barrier could be inhibited by chelating Fe(II) ion in endothelial cells. Furthermore, in the presence of a reducing reagent for reactive oxygen species (ROS), hypoxia could not disrupt the neural vascular barrier despite that the hypoxic increase in intracellular level of Fe(II) ion was confirmed in endothelial cells. These results indicate that hypoxia-triggered increase in the level of intracellular Fe(II) ion and subsequent production of ROS, probably through Fenton reaction, are the essential pathway mediating the disruption of neural vascular barrier under hypoxia.</ns1:AbstractText><ns1:CopyrightInformation>Copyright © 2019. Published by Elsevier Inc.</ns1:CopyrightInformation></ns1:Abstract><ns1:AuthorList CompleteYN=\"Y\"><ns1:Author ValidYN=\"Y\"><ns1:LastName>Cui</ns1:LastName><ns1:ForeName>Dan</ns1:ForeName><ns1:Initials>D</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Pathology, Yamaguchi University Graduate School of Medicine, 1-1-1 Minami-Kogushi, Ube, Yamaguchi, 755-8505, Japan.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author ValidYN=\"Y\"><ns1:LastName>Arima</ns1:LastName><ns1:ForeName>Mitsuru</ns1:ForeName><ns1:Initials>M</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Pathology, Yamaguchi University Graduate School of Medicine, 1-1-1 Minami-Kogushi, Ube, Yamaguchi, 755-8505, Japan; Department of Ophthalmology, Kyushu University Graduate School of Medical Sciences, 3-1-1 Maidashi, Higashi-ku, Fukuoka City, Fukuoka, 812-8582, Japan.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author ValidYN=\"Y\"><ns1:LastName>Hirayama</ns1:LastName><ns1:ForeName>Tasuku</ns1:ForeName><ns1:Initials>T</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Laboratory of Pharmaceutical and Medicinal Chemistry, Gifu Pharmaceutical University, 1-25-4, Daigaku-nishi, Gifu-shi, Gifu, 501-1196, Japan.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author><ns1:Author ValidYN=\"Y\"><ns1:LastName>Ikeda</ns1:LastName><ns1:ForeName>Eiji</ns1:ForeName><ns1:Initials>E</ns1:Initials><ns1:AffiliationInfo><ns1:Affiliation>Department of Pathology, Yamaguchi University Graduate School of Medicine, 1-1-1 Minami-Kogushi, Ube, Yamaguchi, 755-8505, Japan. Electronic address: ikedae@yamaguchi-u.ac.jp.</ns1:Affiliation></ns1:AffiliationInfo></ns1:Author></ns1:AuthorList><ns1:Language>eng</ns1:Language><ns1:PublicationTypeList><ns1:PublicationType UI=\"D016428\">Journal Article</ns1:PublicationType></ns1:PublicationTypeList><ns1:ArticleDate DateType=\"Electronic\"><ns1:Year>2019</ns1:Year><ns1:Month>04</ns1:Month><ns1:Day>07</ns1:Day></ns1:ArticleDate></ns1:Article><ns1:MedlineJournalInfo><ns1:Country>United States</ns1:Country><ns1:MedlineTA>Exp Cell Res</ns1:MedlineTA><ns1:NlmUniqueID>0373226</ns1:NlmUniqueID><ns1:ISSNLinking>0014-4827</ns1:ISSNLinking></ns1:MedlineJournalInfo><ns1:KeywordList Owner=\"NOTNLM\"><ns1:Keyword MajorTopicYN=\"N\">Claudin-5</ns1:Keyword><ns1:Keyword MajorTopicYN=\"N\">Fe(II) ion</ns1:Keyword><ns1:Keyword MajorTopicYN=\"N\">Hypoxia</ns1:Keyword><ns1:Keyword MajorTopicYN=\"N\">Neural vascular barrier</ns1:Keyword></ns1:KeywordList></ns1:MedlineCitation><ns1:PubmedData><ns1:History><ns1:PubMedPubDate PubStatus=\"received\"><ns1:Year>2018</ns1:Year><ns1:Month>12</ns1:Month><ns1:Day>31</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"revised\"><ns1:Year>2019</ns1:Year><ns1:Month>04</ns1:Month><ns1:Day>01</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"accepted\"><ns1:Year>2019</ns1:Year><ns1:Month>04</ns1:Month><ns1:Day>03</ns1:Day></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"entrez\"><ns1:Year>2019</ns1:Year><ns1:Month>4</ns1:Month><ns1:Day>11</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"pubmed\"><ns1:Year>2019</ns1:Year><ns1:Month>4</ns1:Month><ns1:Day>11</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate><ns1:PubMedPubDate PubStatus=\"medline\"><ns1:Year>2019</ns1:Year><ns1:Month>4</ns1:Month><ns1:Day>11</ns1:Day><ns1:Hour>6</ns1:Hour><ns1:Minute>0</ns1:Minute></ns1:PubMedPubDate></ns1:History><ns1:PublicationStatus>aheadofprint</ns1:PublicationStatus><ns1:ArticleIdList><ns1:ArticleId IdType=\"pubmed\">30970238</ns1:ArticleId><ns1:ArticleId IdType=\"pii\">S0014-4827(19)30153-3</ns1:ArticleId><ns1:ArticleId IdType=\"doi\">10.1016/j.yexcr.2019.04.003</ns1:ArticleId></ns1:ArticleIdList></ns1:PubmedData></ns1:PubmedArticle>";
@@ -30,11 +35,11 @@ public class PubMedJSoupDoc {
 	//------------------------------------------------------------------------
 	public static List<String> articleIdList(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		List<String> idList=new ArrayList<String>();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:articleidList"))
-			for(Element e1:e.getElementsByTag("ns1:articleid"))
+		for(Element e:xmlDoc.getElementsByTag("articleidList"))
+			for(Element e1:e.getElementsByTag("articleid"))
 				idList.add(e1.html().toString());
 
 		return idList;
@@ -42,11 +47,11 @@ public class PubMedJSoupDoc {
 	//-------------------------------------------------------------------
 	public static String abstractText(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		StringBuffer out=new StringBuffer();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:abstract")){
-			for(Element e1:e.getElementsByTag("ns1:abstracttext")){
+		for(Element e:xmlDoc.getElementsByTag("abstract")){
+			for(Element e1:e.getElementsByTag("abstracttext")){
 				out.append(e1.attr("label"));
 				out.append("\t"+e1.html().toString()+"\r\n");
 			}
@@ -58,13 +63,13 @@ public class PubMedJSoupDoc {
 	public static List<String> authorList(String text){
 		List<String> list=new ArrayList<String>();
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		StringBuffer out=new StringBuffer();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:authorList")){
-			for(Element e1:e.getElementsByTag("ns1:author")){
-				String name=e1.getElementsByTag("ns1:lastname").html();
-				name+=", "+e1.getElementsByTag("ns1:forename").html();
+		for(Element e:xmlDoc.getElementsByTag("authorList")){
+			for(Element e1:e.getElementsByTag("author")){
+				String name=e1.getElementsByTag("lastname").html();
+				name+=", "+e1.getElementsByTag("forename").html();
 				list.add(name);
 			}
 		}
@@ -75,12 +80,12 @@ public class PubMedJSoupDoc {
 	public static List<String> chemicalList(String text){
 		List<String> list=new ArrayList<String>();
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		StringBuffer out=new StringBuffer();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:chemicallist")){
-			for(Element e1:e.getElementsByTag("ns1:chemical")){
-				String name=e1.getElementsByTag("ns1:NameOfSubstance").html();
+		for(Element e:xmlDoc.getElementsByTag("chemicallist")){
+			for(Element e1:e.getElementsByTag("chemical")){
+				String name=e1.getElementsByTag("NameOfSubstance").html();
 				list.add(name);
 			}
 		}
@@ -90,11 +95,11 @@ public class PubMedJSoupDoc {
 	//----------------------------------------------------------------------
 	public static List<String> keywordList(String text){
 		List<String> list=new ArrayList<String>();
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		StringBuffer out=new StringBuffer();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:keywordlist")){
-			for(Element e1:e.getElementsByTag("ns1:keyword")){
+		for(Element e:xmlDoc.getElementsByTag("keywordlist")){
+			for(Element e1:e.getElementsByTag("keyword")){
 				list.add(e1.html().toString());
 			}
 		}
@@ -105,12 +110,12 @@ public class PubMedJSoupDoc {
 	public static List<String> meshHeadingList(String text){
 		List<String> list=new ArrayList<String>();
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		StringBuffer out=new StringBuffer();
 
-		for(Element e:xmlDoc.getElementsByTag("ns1:meshheadingList")){
-			for(Element e1:e.getElementsByTag("ns1:meshheading")){
-				String name=e1.getElementsByTag("ns1:descriptorname").html();
+		for(Element e:xmlDoc.getElementsByTag("meshheadingList")){
+			for(Element e1:e.getElementsByTag("meshheading")){
+				String name=e1.getElementsByTag("descriptorname").html();
 				list.add(name);
 			}
 		}
@@ -120,11 +125,11 @@ public class PubMedJSoupDoc {
 	public static String pubJournalDate(String text){
 
 		String year="";
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
-		for(Element e:xmlDoc.getElementsByTag("ns1:pubmedpubdate")){
-			year=e.getElementsByTag("ns1:year").html();
-			year+=" "+e.getElementsByTag("ns1:month").html();
-			year+=" "+e.getElementsByTag("ns1:day").html();
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
+		for(Element e:xmlDoc.getElementsByTag("pubmedpubdate")){
+			year=e.getElementsByTag("year").html();
+			year+=" "+e.getElementsByTag("month").html();
+			year+=" "+e.getElementsByTag("day").html();
 
 		}
 		return year;
@@ -203,16 +208,16 @@ public class PubMedJSoupDoc {
 		String medDate=new String();
 		String journal= new String();
 		String dateStr= new String();
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
-		for(Element e:xmlDoc.getElementsByTag("ns1:medlinecitation"))
-			for(Element e1:e.getElementsByTag("ns1:Article"))
-				for (Element e2 : e1.getElementsByTag("ns1:Journal")) {
-					medDate = e2.getElementsByTag("ns1:medlinedate").html();
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
+		for(Element e:xmlDoc.getElementsByTag("medlinecitation"))
+			for(Element e1:e.getElementsByTag("Article"))
+				for (Element e2 : e1.getElementsByTag("Journal")) {
+					medDate = e2.getElementsByTag("medlinedate").html();
 					if(medDate==null || medDate.equals("")){
-						for(Element	e3:e2.getElementsByTag("ns1:JournalIssue"))
-							for(Element e4:e3.getElementsByTag("ns1:PubDate")){
-								year=e4.getElementsByTag("ns1:Year").html();
-								month=e4.getElementsByTag("ns1:Month").html();
+						for(Element	e3:e2.getElementsByTag("JournalIssue"))
+							for(Element e4:e3.getElementsByTag("PubDate")){
+								year=e4.getElementsByTag("Year").html();
+								month=e4.getElementsByTag("Month").html();
 							}
 
 					}
@@ -316,9 +321,9 @@ public class PubMedJSoupDoc {
 
 		List<String> list=new ArrayList<String>();
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
-		for(Element e:xmlDoc.getElementsByTag("ns1:PublicationTypeList")){
-			String name=e.getElementsByTag("ns1:PublicationType").html();
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
+		for(Element e:xmlDoc.getElementsByTag("PublicationTypeList")){
+			String name=e.getElementsByTag("PublicationType").html();
 			list.add(name);
 		}
 		return list;
@@ -327,9 +332,9 @@ public class PubMedJSoupDoc {
 	public static String pmId(String text){
 
 		String id="";
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
-		for(Element e:xmlDoc.getElementsByTag("ns1:articleidlist"))
-			for(Element e1:e.getElementsByTag("ns1:articleid")){
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
+		for(Element e:xmlDoc.getElementsByTag("articleidlist"))
+			for(Element e1:e.getElementsByTag("articleid")){
 				String iid=e1.attr("idtype").toString();
 				if(iid.contains("pubmed"))
 					return e1.html();
@@ -340,65 +345,65 @@ public class PubMedJSoupDoc {
 	//----------------------------------------------------------------------
 	public static String articleTitle(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		return xmlDoc.getElementsByTag("ns1:articletitle").html();
+		return xmlDoc.getElementsByTag("articletitle").html();
 	}
 	//----------------------------------------------------------------------
 	public static String journalTitle(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:journal"))
-			return e.getElementsByTag("ns1:title").html();
+		for(Element e: xmlDoc.getElementsByTag("journal"))
+			return e.getElementsByTag("title").html();
 		return null;
 	}
 	//----------------------------------------------------------------------
 	public static String journalVolume(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:journal"))
-			return e.getElementsByTag("ns1:volume").html();
+		for(Element e: xmlDoc.getElementsByTag("journal"))
+			return e.getElementsByTag("volume").html();
 		return null;
 	}
 	//----------------------------------------------------------------------
 	public static String journalIssue(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:journal"))
-			return e.getElementsByTag("ns1:issue").html();
+		for(Element e: xmlDoc.getElementsByTag("journal"))
+			return e.getElementsByTag("issue").html();
 		return null;
 	}
 	//----------------------------------------------------------------------
 	public static String journalPage(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:pagination"))
-			return e.getElementsByTag("ns1:MedlinePgn").html();
+		for(Element e: xmlDoc.getElementsByTag("pagination"))
+			return e.getElementsByTag("MedlinePgn").html();
 		return null;
 	}
 	//----------------------------------------------------------------------
 	public static String affiliation(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:authorlist"))
-			for(Element e1: e.getElementsByTag("ns1:author")){
-				return e1.getElementsByTag("ns1:affiliation").html();
+		for(Element e: xmlDoc.getElementsByTag("authorlist"))
+			for(Element e1: e.getElementsByTag("author")){
+				return e1.getElementsByTag("affiliation").html();
 			}
 		return null;
 	}
 	//----------------------------------------------------------------------
 	public static String issn(String text){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 
-		for(Element e: xmlDoc.getElementsByTag("ns1:article"))
-			for(Element e1: e.getElementsByTag("ns1:journal")){
-				return e1.getElementsByTag("ns1:issn").html();
+		for(Element e: xmlDoc.getElementsByTag("article"))
+			for(Element e1: e.getElementsByTag("journal")){
+				return e1.getElementsByTag("issn").html();
 			}
 		return null;
 	}
@@ -406,9 +411,9 @@ public class PubMedJSoupDoc {
 	//----------------------------------------------------------------------
 	public static String[] parseBulkXml(String text, boolean pmc){
 
-		Document xmlDoc=Jsoup.parse(text, "", Parser.xmlParser());
+		Document xmlDoc=Jsoup.parse(stripNs1(text), "", Parser.xmlParser());
 		List<String> list=new ArrayList<String>();
-		String tag = "ns1:PubmedArticle";
+		String tag = "PubmedArticle";
 		if(pmc)
 			tag = "article";
 		for(Element e1: xmlDoc.getElementsByTag(tag))

@@ -53,8 +53,8 @@ public class PubMedDocSet extends DocumentSetBase {
 		}
 	}
 
-	private final static String docSetXmlHead = "<ns1:eFetchResult xmlns:ns1=\"http://www.ncbi.nlm.nih.gov/soap/eutils/efetch_pubmed\"><ns1:PubmedArticleSet>";
-	private final static String docSetXmlTail = "</ns1:PubmedArticleSet></ns1:eFetchResult>";
+	private final static String docSetXmlHead = "<eFetchResult><PubmedArticleSet>";
+	private final static String docSetXmlTail = "</PubmedArticleSet></eFetchResult>";
 	public int setDocXml(String docXml) throws Exception {
 		try {
 			docSetXML =  docSetXmlHead + docXml + docSetXmlTail;
