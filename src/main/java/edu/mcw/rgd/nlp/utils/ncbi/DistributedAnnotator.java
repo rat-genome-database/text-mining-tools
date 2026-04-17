@@ -128,6 +128,20 @@ public class DistributedAnnotator {
 	  public static Job configureJob(Configuration conf, String [] args) throws IOException {
 		  Path hdfsGateAppPath = new Path(args[1]);
           Scan sc=new Scan();
+
+		  // GATE 8.4.1 uses reflection on internal JDK classes; Java 17 requires --add-opens
+		  String addOpens = "--add-opens java.base/java.lang=ALL-UNNAMED "
+				  + "--add-opens java.base/java.lang.reflect=ALL-UNNAMED "
+				  + "--add-opens java.base/java.util=ALL-UNNAMED "
+				  + "--add-opens java.base/java.io=ALL-UNNAMED "
+				  + "--add-opens java.base/java.text=ALL-UNNAMED "
+				  + "--add-opens java.desktop/java.awt.font=ALL-UNNAMED "
+				  + "--add-opens java.desktop/javax.imageio.spi=ALL-UNNAMED "
+				  + "--add-opens java.desktop/javax.imageio=ALL-UNNAMED";
+		  String existing = conf.get("mapreduce.map.java.opts", "");
+		  conf.set("mapreduce.map.java.opts", existing + " -Xmx16g " + addOpens);
+		  conf.set("mapreduce.map.memory.mb", "20480");
+
 		  conf.set(TableInputFormat.INPUT_TABLE, args[0]);
 		  conf.set(TableInputFormat.SCAN_COLUMN_FAMILY, "d");
 		  String scanConvertedString=TableMapReduceUtil.convertScanToString(sc);

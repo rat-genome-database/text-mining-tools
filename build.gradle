@@ -76,14 +76,16 @@ dependencies {
     implementation 'commons-logging:commons-logging:1.2'
     implementation 'org.codehaus.woodstox:woodstox-core-lgpl:4.4.1'
     implementation 'org.codehaus.woodstox:stax2-api:3.1.4'
-    implementation 'com.thoughtworks.xstream:xstream:1.4.19'
+    implementation 'com.thoughtworks.xstream:xstream:1.4.7'
     implementation 'org.apache.lucene:lucene-core:4.2.0'
     implementation 'org.springframework:spring-core:4.3.30.RELEASE'
     implementation 'org.springframework:spring-beans:4.3.30.RELEASE'
     implementation 'org.springframework:spring-context:4.3.30.RELEASE'
     implementation 'org.springframework:spring-aop:4.3.30.RELEASE'
     implementation 'org.apache.tika:tika-core:1.17'
-    implementation 'org.apache.tika:tika-parsers:1.17'
+    implementation('org.apache.tika:tika-parsers:1.17') {
+        exclude group: 'org.apache.opennlp'
+    }
     implementation 'org.apache.pdfbox:pdfbox:1.8.8'
     implementation 'org.apache.pdfbox:fontbox:1.8.8'
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
