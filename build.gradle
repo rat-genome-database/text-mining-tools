@@ -122,8 +122,8 @@ dependencies {
 
 shadowJar {
     archiveBaseName.set(appName)
-    archiveVersion.set(version)
-    archiveClassifier.set('all')
+//    archiveVersion.set(version)
+    archiveClassifier.set('')
     zip64 = true
     mergeServiceFiles()
 
