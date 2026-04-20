@@ -23,22 +23,6 @@ import edu.mcw.rgd.nlp.utils.Document;
 import edu.mcw.rgd.nlp.utils.DocumentBase;
 
 import edu.mcw.rgd.nlp.utils.ncbi.PubMedJSoupDoc;
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.ArticleIdType; changed=> getPMCid() getDoi()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AuthorListType;  nothing happened
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractTextType; Changed => getArticleAbstract()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.ArticleDateType; nothing happened
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AuthorType; changed=>getArticleAuthors()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.ChemicalListType; changed=>getChemicals()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.IdType_type0; nothing changed
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.JournalIssueType; nothing changed
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.KeywordListType; changed=>getKeywords()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.KeywordType; nothing changed
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MeshHeadingType; changed=>getMeshTerms()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubDateType; changed=>getArticlePubDate(), getArticleJournalDate()
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubMedPubDateType; changed=>getPmcId() 
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PublicationTypeListType; changed=>getPublicationTypes()
-
-//import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubmedArticleSetChoiceE;
 
 /**
  * @author wliu

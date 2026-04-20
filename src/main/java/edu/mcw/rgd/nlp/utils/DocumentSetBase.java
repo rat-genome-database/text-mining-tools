@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class DocumentSetBase {
-	protected static final Logger logger = Logger.getLogger(CrawlerBase.class);
+	protected static final Logger logger = Logger.getLogger(DocumentSetBase.class);
 
 	/**
 	 * 

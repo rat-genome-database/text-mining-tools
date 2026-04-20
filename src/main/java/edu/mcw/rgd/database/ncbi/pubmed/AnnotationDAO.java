@@ -1,119 +1,22 @@
 package edu.mcw.rgd.database.ncbi.pubmed;
 
-
-import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableMap;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import edu.mcw.rgd.nlp.utils.LibraryBase;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 
 
 import edu.mcw.rgd.common.utils.BasicUtils;
-import edu.mcw.rgd.common.utils.DAOBase;
 
 import edu.mcw.rgd.nlp.utils.ncbi.DistributedAnnotator.Map;
+import org.apache.log4j.Logger;
 
-public class AnnotationDAO extends DAOBase {
-
-	public static String tableName = "annotations";
-	
-	public static void insertRecord(String pmid, int text_location, String annotation_type,
-			String annotation_set, Long text_start, Long text_end, String features) {
-		try {
-			ResultSet rs = DocDBConnection.executeQuery("insert into " + tableName + " value ('" + pmid + "','" +
-					text_location + 
-					"','" + annotation_type + 
-					"','" + annotation_set + 
-					"','" + text_start + 
-					"','" + text_end + 
-					"','" + StringEscapeUtils.escapeJavaScript(features) +
-					"');" );
-					DocDBConnection.closeRsStatement(rs);
-		} catch (Exception e) {
-			logger.error("Error inserting annotation " + pmid, e);
-
-		}
-		
-	}
-
-	public static void deleteRecords(String pmid) {
-		try {
-			DocDBConnection.closeRsStatement(DocDBConnection.executeQuery("delete from " + tableName + 
-				" where pmid=" + pmid));
-		} catch (Exception e) {
-			logger.error("Error deleting annotations " + pmid, e);
-
-		}
-	}
-	
-	public static void deleteRecords(String pmid, String annotation_set, int text_location) {
-		try {
-			DocDBConnection.closeRsStatement(DocDBConnection.executeQuery("delete from " + tableName + 
-					" where pmid=" + pmid + " and text_location=" + text_location + " and " +
-					"annotation_set=" + BasicUtils.EscapeSQLStringValue(annotation_set)));
-		} catch (Exception e) {
-			logger.error("Error deleting annotations " + pmid, e);
-
-		}
-	}
-	
-	public static void deleteRecord(String pmid, List<String> annotation_sets, int text_location) {
-		String set_str = "";
-		for (String ann_set : annotation_sets) {
-			set_str += (BasicUtils.EscapeSQLStringValue(ann_set) + ",");
-		}
-		set_str = set_str.substring(0, set_str.length()-1);
-		try {
-			DocDBConnection.closeRsStatement(DocDBConnection.executeQuery("delete from " + tableName + 
-					" where pmid=" + pmid + " and text_location=" + text_location + " and " +
-					"annotation_set in (" + set_str + ")"));
-		} catch (Exception e) {
-			logger.error("Error deleting annotations " + pmid, e);
-
-		}
-
-	}
-
-	
-	public static void insertRecord(String pmid, int text_location,
-			String annotation_set, gate.Annotation annotation) {
-		insertRecord(pmid, text_location, annotation.getType(), annotation_set, annotation.getStartNode().getOffset(),
-				annotation.getEndNode().getOffset(), annotation.getFeatures().toString());
-	}
-	
-	public static List<AnnotationRecord> getAnnotations(long pmid) throws Exception {
-		ResultSet rs = DocDBConnection.executeQuery("select * from " + tableName + " where pmid="+Long.toString(pmid));
-		List<AnnotationRecord> return_list = new ArrayList<AnnotationRecord>();
-		AnnotationRecord a_record;
-		String annotation_str = "";
-		try {
-			if (rs == null) return return_list;
-			while (rs.next()) {
-				a_record = new AnnotationRecord();
-				a_record.PMID = pmid;
-				a_record.text_location = rs.getInt("TEXT_LOCATION");
-				a_record.annotation_type = rs.getString("ANNOTATION_TYPE");
-				a_record.annotation_set = rs.getString("ANNOTATION_SET");
-				a_record.text_start = rs.getInt("TEXT_START");
-				a_record.text_end = rs.getInt("TEXT_END");
-				annotation_str = rs.getString("FEATURES");
-				a_record.setFeatures(annotation_str);
-				return_list.add(a_record);
-			}
-			DocDBConnection.closeRsStatement(rs);
-			return return_list;
-		} catch (Exception e) {
-			logger.error("Error in processing annotations [pmid:" + Long.toString(pmid) + "] [" + annotation_str + "] " + e.getMessage() + "at" + BasicUtils.strExceptionStackTrace(e));
-			return return_list;
-		}
-	}
-	
-	
+public class AnnotationDAO {
+    protected static final Logger logger = Logger.getLogger(LibraryBase.class);
 	public static List<AnnotationRecord> getAnnotationsFromResult(Result result) {
 		List<AnnotationRecord> return_list = new ArrayList<>();
 		try {
@@ -192,50 +95,8 @@ public class AnnotationDAO extends DAOBase {
 			return null;
 		}
 	}
-	
-	public static List<AnnotationRecord> getAllAnnotations(long pmid) throws Exception {
-		tableName = "annotations_gene";
-		List<AnnotationRecord> return_list = getAnnotations(pmid);
-		tableName = "annotations_organismtagger";
-		return_list.addAll(getAnnotations(pmid));
-		tableName = "annotations_other_onto";
-		return_list.addAll(getAnnotations(pmid));
-		return return_list;
-	}
-	
-	public static List<AnnotationRecord> getAllAnnotationsForNcbiLog(long pmid) throws Exception {
-		ResultSet rs = DocDBConnection.executeQuery("select * from annotations_ncbi where pmid="+Long.toString(pmid));
-		List<AnnotationRecord> return_list = new ArrayList<>();
-		AnnotationRecord a_record;
-		String annotation_str = "";
-		try {
-			if (rs == null) return return_list;
-			while (rs.next()) {
-				a_record = new AnnotationRecord();
-				a_record.PMID = pmid;
-				a_record.text_location = rs.getInt("TEXT_LOCATION");
-				a_record.annotation_type = rs.getString("ANNOTATION_TYPE");
-				a_record.annotation_set = rs.getString("ANNOTATION_SET");
-				a_record.text_start = rs.getInt("TEXT_START");
-				a_record.text_end = rs.getInt("TEXT_END");
-				annotation_str = rs.getString("FEATURES");
-				a_record.setFeatures(annotation_str);
-				return_list.add(a_record);
-			}
-			DocDBConnection.closeRsStatement(rs);
-			return return_list;
-		} catch (Exception e) {
-			logger.error("Error in processing annotations [pmid:" + Long.toString(pmid) + "] [" + annotation_str + "] " + e.getMessage() + "at" + BasicUtils.strExceptionStackTrace(e));
-			return return_list;
-		}
-	}
-	
+
 	public static void main(String args[]) throws Exception {
-		List<AnnotationRecord> a_list = AnnotationDAO.getAnnotations(21338450);
-		Iterator<AnnotationRecord> it = a_list.iterator();
-		while (it.hasNext()) {
-			AnnotationRecord a_record =  it.next();
-			System.out.println("features: " + a_record.features);
-		}
+
 	}
 }

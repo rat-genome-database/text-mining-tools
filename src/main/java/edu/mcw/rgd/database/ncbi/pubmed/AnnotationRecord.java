@@ -1,13 +1,8 @@
 package edu.mcw.rgd.database.ncbi.pubmed;
 
-
 import java.util.HashMap;
 
-
-import edu.mcw.rgd.common.utils.DAOBase;
-
-public class AnnotationRecord extends DAOBase {
-	public long PMID;
+public class AnnotationRecord {
 	public int text_location;
 	public String annotation_type;
 	public String annotation_set;
@@ -17,8 +12,6 @@ public class AnnotationRecord extends DAOBase {
 	public HashMap features_table; 
 	
 	public void setFeatures(String value) {
-//		logger.info("Parsing feature: " + value);
-		
 		value = value.substring(1, value.length() - 1);
 		features = value;
 		if (features_table == null) {
@@ -26,7 +19,6 @@ public class AnnotationRecord extends DAOBase {
 		} else {
 			features_table.clear();
 		}
-
 		String[] feature_array = features.split(", ");
 		for (int i = 0; i < feature_array.length; i++) {
 			String feature_str = feature_array[i];
@@ -42,13 +34,11 @@ public class AnnotationRecord extends DAOBase {
 				String feature_value = feature_str.substring(marker + 1, feature_str.length()).trim();
 				features_table.put(feature_key, feature_value);
 			}
-//			logger.info("Feature successfully parsed.");
 		}
 	}
 	
 	public static void main(String[] args) {
 		AnnotationRecord a_record = new AnnotationRecord();
-//		a_record.setFeatures("{source=openNLP, string=International, category=NNP, stem=intern}");
 		a_record.setFeatures("{source=openNLP, string=,, category=,, stem=,}");
 	}
 }

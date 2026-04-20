@@ -1,33 +1,35 @@
 package edu.mcw.rgd.common.mapreduce.ncbi.pubmed;
 
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import edu.mcw.rgd.common.utils.HbaseUtils;
+import edu.mcw.rgd.nlp.utils.ncbi.PubMedLibrary;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-import edu.mcw.rgd.nlp.utils.ncbi.PubMedLibrary;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 
-public class HBaseLoader {
-    public static class XMLMapper
+import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+public class HBasePmcLoader {
+    public static class PMCMapper
             extends Mapper<Object, Text, ImmutableBytesWritable, Mutation> {
 
-        private static Pattern articlePattern = Pattern.compile("(<(?:ns1:)?PubmedArticle>.+?</(?:ns1:)?PubmedArticle>)");
-        private static Pattern pmidPattern = Pattern.compile("<(?:ns1:)?PMID.+?>(.+?)</(?:ns1:)?PMID>");
+        private static Pattern articlePattern = Pattern.compile("(<article.+?>.+?</article>)");
+        private static Pattern pmidPattern = Pattern.compile("<article-id pub-id-type=\"pmid\">(.+?)</article-id>");
         private static byte[] colFamily = Bytes.toBytes("d");
         private static byte[] col = Bytes.toBytes("x");
         public static int x = 1;
@@ -36,15 +38,6 @@ public class HBaseLoader {
         ) throws IOException, InterruptedException {
             String fileName = ((FileSplit) context.getInputSplit()).getPath().getName();
             System.out.println("Processing: [" + fileName + "]");
-            Long timeStamp;
-            if (fileName.contains("_")) {
-                String importDate = fileName.substring(0, 10).replaceAll("_", "");
-                timeStamp = Long.parseLong(importDate);
-            } else {
-                String fileSeq = fileName.substring(0, fileName.indexOf('.'));
-                timeStamp = Long.parseLong(fileSeq);
-            }
-            System.out.println("Time Stamp: " + timeStamp.toString());
             Matcher m = articlePattern.matcher(value.toString());
             while (m.find()) {
                 String articleXml = m.group();
@@ -54,6 +47,8 @@ public class HBaseLoader {
                     String pmid_r = PubMedLibrary.pmidToHbaseKey(pmid);
                     System.out.println("PMID: " + pmid);
                     Put put = new Put(Bytes.toBytes(pmid_r));
+                    SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyy");
+                    long timeStamp = Long.parseLong(formatter.format(new Date()));
                     put.addColumn(colFamily, col, timeStamp, Bytes.toBytes(articleXml));
                     try {
                         context.write(new ImmutableBytesWritable(Bytes.toBytes(pmid_r)), put);
@@ -75,7 +70,7 @@ public class HBaseLoader {
         HbaseUtils.createTable(otherArgs[1], conf);
         Job job = new Job(conf, "Import PubMed XML to HBase:" + otherArgs[1] + " from " + otherArgs[0]);
         job.setJarByClass(XMLProcessor.class);
-        job.setMapperClass(XMLMapper.class);
+        job.setMapperClass(PMCMapper.class);
         job.setOutputValueClass(Result.class);
         XMLInputFormat.addInputPath(job, new Path(otherArgs[0]));
         TableMapReduceUtil.initTableReducerJob(otherArgs[1], null, job);

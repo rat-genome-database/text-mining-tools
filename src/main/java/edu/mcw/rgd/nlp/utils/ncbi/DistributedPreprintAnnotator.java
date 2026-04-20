@@ -50,7 +50,6 @@ public class DistributedPreprintAnnotator {
             Configuration conf = context.getConfiguration();
             annotationSets = new ArrayList<String>();
 
-            //  Path[] localCache = DistributedCache.getLocalCacheArchives(conf);
             Path[] localCache = context.getLocalCacheArchives();
             gateHome = localCache[0].toString();
             System.out.println("local cache gate home: "+ gateHome);
@@ -86,11 +85,7 @@ public class DistributedPreprintAnnotator {
             boolean hasArticle = false;
             List<Cell> cells=result.listCells();
             for(Cell c:cells){
-                //  System.out.println(c);
-                String r=new String(CellUtil.cloneRow(c));
-                String family= new String(CellUtil.cloneFamily(c));
                 String column=new String(CellUtil.cloneQualifier(c));
-                String val= new String(CellUtil.cloneValue(c));
                 if(column.equals("x")){
                     docTS=c.getTimestamp();
                     hasArticle=true;
@@ -155,14 +150,16 @@ public class DistributedPreprintAnnotator {
     public static String gateHomePath = "tmp/gate/";
 
     public static Job configureJob(Configuration conf, String [] args) throws IOException {
-
-        Path localGateAppPath = new Path(args[1]);
+        Path hdfsGateAppPath = new Path(args[1]);
+        /*Path localGateAppPath = new Path(args[1]);
         gateHomePath = gateHomePath + localGateAppPath.getName();
         Path hdfsGateAppPath = new Path(gateHomePath);
         if (!args[1].equals("lastApp")) {
             FileSystem fs = FileSystem.get(conf);
             fs.copyFromLocalFile(localGateAppPath, hdfsGateAppPath);
         }
+
+        */
         Scan sc=new Scan();
         conf.set(TableInputFormat.INPUT_TABLE, args[0]);
         conf.set(TableInputFormat.SCAN_COLUMN_FAMILY, "d");
@@ -193,10 +190,11 @@ public class DistributedPreprintAnnotator {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.quorum", "gray03.rgd.mcw.edu");
-        conf.set("hbase.master", "gray01.rgd.mcw.edu:60000");
+        conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
         conf.set("hbase.zookeeper.property.clientPort", "2181");
-        conf.set("zookeeper.znode.parent", "/hbase-unsecure");
+        conf.set("hbase.client.retries.number", Integer.toString(1));
+        conf.set("zookeeper.session.timeout", Integer.toString(60000));
+        conf.set("zookeeper.recovery.retry", Integer.toString(0));
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if(otherArgs.length < 5) {
             System.err.println("At least 5 parameters: <table name> <path to gate> <use stemming> <column name> <annotation set> ...");
