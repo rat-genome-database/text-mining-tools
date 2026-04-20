@@ -4,7 +4,6 @@ plugins {
 }
 
 group = 'rgd.mcw.edu'
-version = '7.12'
 
 String appName = 'ontomate-tools'
 
@@ -124,7 +123,7 @@ dependencies {
 shadowJar {
     archiveBaseName.set(appName)
     archiveVersion.set(version)
-    archiveClassifier.set('all')
+    archiveClassifier.set('')
     zip64 = true
     mergeServiceFiles()
 
