@@ -44,7 +44,7 @@ public class HBaseLoader {
                 String fileSeq = fileName.substring(0, fileName.indexOf('.'));
                 timeStamp = Long.parseLong(fileSeq);
             }
-            System.out.println("Time Stamp: " + timeStamp.toString());
+
             Matcher m = articlePattern.matcher(value.toString());
             while (m.find()) {
                 String articleXml = m.group();

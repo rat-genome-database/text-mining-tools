@@ -182,9 +182,10 @@ protected void cleanup(Context context) throws IOException{
 		Configuration conf = HBaseConfiguration.create();
 		conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
 		conf.set("hbase.zookeeper.property.clientPort", "2181");
-		conf.set("hbase.client.retries.number", Integer.toString(1));
+		conf.set("hbase.client.retries.number", Integer.toString(15));
+		conf.set("hbase.client.pause", Integer.toString(200));
 		conf.set("zookeeper.session.timeout", Integer.toString(60000));
-		conf.set("zookeeper.recovery.retry", Integer.toString(0));
+		conf.set("zookeeper.recovery.retry", Integer.toString(3));
 
         System.out.println(conf.get("dfs.support.append"));
         conf.set("dfs.support.append","true");
